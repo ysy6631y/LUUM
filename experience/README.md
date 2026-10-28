@@ -1,6 +1,6 @@
 # LUUM interactive experience
 
-React + Vite + GSAP ScrollTrigger로 만든 **로컬 개발용** 브랜드 사이트. 공개 Coming Soon 페이지를 대체하지 않는다.
+React + Vite + GSAP ScrollTrigger로 만든 LUUM 인터랙티브 브랜드 사이트. GitHub Pages에 별도 경로로 게시하며 공개 Coming Soon 페이지는 유지한다.
 
 ## 실행
 
@@ -27,9 +27,10 @@ npx playwright test
 
 - 저장소 루트 `../index.html`은 기존 QR용 Coming Soon 그대로 보존.
 - 작업 브랜치: `development/interactive-brand`.
-- push, GitHub Pages 설정 변경, 배포 workflow 생성, 배포 실행 없음.
-- Vite `base: './'`. `dist/`는 독립 정적 빌드이며 하위 경로에서도 에셋을 상대 참조.
-- 루트 `index.html` 위에 dist 내용을 덮어쓰지 말 것. 실제 배포 경로/전략은 후속 단계에서 결정.
+- `development/interactive-brand` 브랜치에 push하면 GitHub Actions가 `experience/`를 빌드해 GitHub Pages에 게시.
+- 저장소 루트의 QR용 `index.html`은 보존하고 변경하지 않는다.
+- Pages URL: https://ysy6631y.github.io/LUUM/ (저장소 Pages 설정 활성화 후 사용 가능).
+- Vite `base: '/LUUM/'`는 프로젝트 Pages 경로에 맞춘다.
 
 ## 콘텐츠 교체
 
