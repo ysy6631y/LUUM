@@ -37,9 +37,8 @@ jobs:
         working-directory: experience
       - name: Assemble Pages artifact
         run: |
-          mkdir -p _site/experience
-          cp index.html _site/index.html
-          cp -R experience/dist/. _site/experience/
+          mkdir -p _site
+          cp -R experience/dist/. _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
