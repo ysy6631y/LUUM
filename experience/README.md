@@ -29,8 +29,8 @@ npx playwright test
 - 작업 브랜치: `development/interactive-brand`.
 - `development/interactive-brand` 브랜치에 push하면 GitHub Actions가 `experience/`를 빌드해 GitHub Pages에 게시.
 - 저장소 루트의 QR용 `index.html`은 보존하고 변경하지 않는다.
-- Pages URL: https://ysy6631y.github.io/LUUM/ (저장소 Pages 설정 활성화 후 사용 가능).
-- Vite `base: '/LUUM/'`는 프로젝트 Pages 경로에 맞춘다.
+- Pages URL: https://ysy6631y.github.io/LUUM/experience/ (저장소 Pages 설정 활성화 후 사용 가능).
+- Vite `base: '/LUUM/experience/'`는 프로젝트 Pages 경로에 맞춘다.
 
 ## 콘텐츠 교체
 
