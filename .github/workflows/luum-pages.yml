@@ -2,7 +2,7 @@ name: Deploy LUUM experience to GitHub Pages
 
 on:
   push:
-    branches: [development/interactive-brand]
+    branches: [main, development/interactive-brand]
     paths:
       - 'experience/**'
       - '.github/workflows/luum-pages.yml'
