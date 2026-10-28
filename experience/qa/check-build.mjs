@@ -1,0 +1,14 @@
+import { chromium } from '@playwright/test';
+import { homedir } from 'node:os';
+const browser = await chromium.launch({headless:true, executablePath:`${homedir()}/Library/Caches/ms-playwright/chromium-1161/chrome-mac/Chromium.app/Contents/MacOS/Chromium`});
+const page=await browser.newPage();
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`)});
+await page.goto('http://127.0.0.1:4174/LUUM/experience/');
+await page.evaluate(async()=>{await document.fonts.ready;for(const image of document.images){image.loading='eager';await image.decode()}});
+await page.locator('.site-header a[href="#products"]').first().click();
+await page.locator('.chapter-button').nth(4).click();
+await page.waitForTimeout(900);
+const result={title:await page.title(),products:await page.locator('.product-scene').count(),lastActive:await page.locator('#product-05').getAttribute('aria-hidden'),errors};
+console.log(JSON.stringify(result));
+await browser.close();
+if(errors.length||result.lastActive!=='false')process.exitCode=1;
