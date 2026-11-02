@@ -1,6 +1,6 @@
 # LUUM — Beyond the visible
 
-기존 React / Vite / Three.js 프로젝트를 유지한 인터랙티브 브랜드 경험입니다. 새 프로젝트, 푸시, 배포 없이 로컬에서 실행합니다.
+기존 React / Vite / Three.js 프로젝트를 유지한 인터랙티브 브랜드 경험입니다. 로컬에서 실행하거나 기존 GitHub Pages 워크플로로 배포합니다.
 
 ## 실행
 
@@ -66,4 +66,4 @@ BODY LOTION은 낮고 둥근 원본 용기입니다. 최신 사용자 매칭·�
 - `docs/QA.md`: 최종 실행 검증과 한계
 - `qa/revised-*.png`, `qa/production-*.png`: 실제 브라우저 화면
 
-작업 시작 전 체크포인트: `9d9dd93`. Git 푸시나 외부 배포는 수행하지 않습니다.
+작업 시작 전 체크포인트: `9d9dd93`. 현재 상태 스냅샷: `fe69585`. `main`에 푸시하면 기존 Actions가 https://ysy6631y.github.io/LUUM/ 에 배포합니다.
