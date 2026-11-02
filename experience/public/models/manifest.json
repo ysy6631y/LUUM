@@ -1,0 +1,52 @@
+[
+  {
+    "id": "01",
+    "objects": [
+      "BODY_01",
+      "GOLD_RING_01",
+      "ENGRAVING_01"
+    ],
+    "triangles": 148568,
+    "sourceHeight": 0.1900000125169754
+  },
+  {
+    "id": "02",
+    "objects": [
+      "BODY_02",
+      "GOLD_RING_02",
+      "ENGRAVING_02"
+    ],
+    "triangles": 193776,
+    "sourceHeight": 0.1900000125169754
+  },
+  {
+    "id": "03",
+    "objects": [
+      "BODY_03",
+      "GOLD_RING_03",
+      "ENGRAVING_03"
+    ],
+    "triangles": 193050,
+    "sourceHeight": 0.1900000125169754
+  },
+  {
+    "id": "04",
+    "objects": [
+      "BODY_04",
+      "GOLD_RING_04",
+      "ENGRAVING_04"
+    ],
+    "triangles": 280372,
+    "sourceHeight": 0.1900000125169754
+  },
+  {
+    "id": "05",
+    "objects": [
+      "BODY_05",
+      "GOLD_RING_05",
+      "ENGRAVING_05"
+    ],
+    "triangles": 237542,
+    "sourceHeight": 0.07779999822378159
+  }
+]

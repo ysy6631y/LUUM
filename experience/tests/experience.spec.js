@@ -1,127 +1,87 @@
-import { test, expect } from "@playwright/test";
-
-const sizes = [
-  { name: "imac", width: 2560, height: 1440 },
-  { name: "desktop", width: 1920, height: 1080 },
-  { name: "mobile", width: 390, height: 844 },
-  { name: "small-mobile", width: 375, height: 667 },
-];
-for (const viewport of sizes) {
-  test(`${viewport.name}: five scenes, reverse scroll, anchors and layout`, async ({
-    page,
-  }) => {
-    const errors = [];
-    page.on("pageerror", (e) => errors.push(e.message));
-    page.on("console", (e) => {
-      if (e.type() === "error") errors.push(e.text());
-    });
-    await page.setViewportSize(viewport);
-    await page.goto("/");
-    await expect(page.locator(".experience")).toHaveClass(/motion-enabled/);
-    await page.evaluate(() => document.fonts.ready);
-    await page.waitForTimeout(1200);
-    await page.screenshot({ path: `qa/${viewport.name}-opening.png` });
-    await page.locator(".scroll-cue").click();
-    await page.waitForTimeout(1200);
-    await page.screenshot({ path: `qa/${viewport.name}-story.png` });
-    await page
-      .locator('.site-header a[href="#products"]')
-      .first()
-      .evaluate((el) => el.click());
-    await page.waitForTimeout(800);
-    for (const index of [0, 1, 2, 3, 4, 2, 0, 4]) {
-      await page.locator(".chapter-button").nth(index).click();
-      await page.waitForTimeout(850);
-      const scene = page.locator(".product-scene").nth(index);
-      await expect(scene).toHaveAttribute("aria-hidden", "false");
-      await expect(page.locator(".chapter-current")).toHaveText(
-        `0${index + 1}`,
-      );
-      await expect(scene.locator("h2")).toBeVisible();
-      const bounds = await scene.locator(".product-copy").boundingBox();
-      expect(bounds.x).toBeGreaterThanOrEqual(0);
-      expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 1);
-      expect(bounds.y).toBeGreaterThanOrEqual(0);
-      expect(bounds.y + bounds.height).toBeLessThan(viewport.height - 65);
-      await page.screenshot({
-        path: `qa/${viewport.name}-product-0${index + 1}.png`,
-      });
-    }
-    // Wheel input, not just chapter navigation, must release the pinned stage.
-    await page.mouse.wheel(0, 12000);
-    await page.waitForTimeout(700);
-    await expect(page.locator("footer")).toBeInViewport();
-    await page
-      .locator('a[href="#values"]')
-      .first()
-      .evaluate((el) => el.click());
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: `qa/${viewport.name}-values.png` });
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > innerWidth,
-    );
-    expect(overflow).toBe(false);
-    expect(errors).toEqual([]);
-  });
+import { test, expect } from '@playwright/test';
+const scene = page => page.locator('canvas').getAttribute('data-scene').then(v=>JSON.parse(v||'{}'));
+async function enter(page) {
+  await page.goto('/');
+  await page.getByRole('button',{name:'컬렉션 감상하기'}).click({timeout:120000});
+  await expect(page.locator('.opening')).toHaveClass(/opening-out/);
+  await expect(page.locator('.opening')).toBeHidden();
+  await expect.poll(async()=>(await scene(page)).models).toBe(5);
 }
 
-test("reduced motion exposes all products, no pin; media resolve", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  await expect(page.locator(".experience")).not.toHaveClass(/motion-enabled/);
-  await expect(page.locator(".pin-spacer")).toHaveCount(0);
-  await expect(page.locator(".product-scene")).toHaveCount(5);
-  for (const scene of await page.locator(".product-scene").all()) {
-    await expect(scene).not.toHaveAttribute("aria-hidden", "true");
+test('five source models, selection, continuous detail, collection, and fonts', async ({page}) => {
+  test.setTimeout(180000);
+  await page.setViewportSize({width:1440,height:1000});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await enter(page);
+  await page.screenshot({path:'qa/final-desktop-ivory.png'});
+  const names=['UMBER 엄버','SIENNA 시에나','SAND 샌드','IVORY 아이보리','PEARL 펄'];
+  for(let i=0;i<5;i++) {
+    await page.getByRole('button',{name:`${names[i]} 보기`}).click();
+    await expect.poll(async()=>(await scene(page)).selected).toBe(i);
+    await expect(page.locator('.product-title')).toHaveText(names[i].split(' ')[0]);
+    await page.waitForTimeout(1700);
+    await page.screenshot({path:`qa/final-product-0${i+1}.png`});
   }
-  await page.evaluate(async () => {
-    for (const img of document.images) {
-      img.loading = "eager";
-      await img.decode();
-    }
+  await page.getByRole('button',{name:'IVORY 아이보리 보기'}).click();
+  for(const [index,label] of [[1,'금빛 패턴'],[2,'디테일'],[3,'리추얼']]) {
+    await page.getByRole('button',{name:label,exact:true}).click();
+    await expect.poll(async()=>(await scene(page)).progress,{timeout:15000}).toBeCloseTo(index,1);
+    await page.waitForTimeout(900);
+    await page.screenshot({path:`qa/final-desktop-scene-${index}.png`});
+  }
+  await page.getByRole('button',{name:'컬렉션',exact:true}).click();
+  await expect.poll(async()=>(await scene(page)).gallery,{timeout:20000}).toBe(1);
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.screenshot({path:'qa/final-desktop-collection.png'});
+  await page.getByRole('button',{name:'SIENNA 탐색'}).click();
+  await expect.poll(async()=>(await scene(page)).selected).toBe(1);
+  await expect.poll(async()=>(await scene(page)).gallery).toBe(0);
+  await expect.poll(async()=>(await scene(page)).progress).toBe(0);
+  // Drag changes the actual canvas pixels, while preserving the selected model.
+  await page.waitForTimeout(1600);
+  const before=await page.locator('canvas').screenshot();
+  await page.mouse.move(720,450);await page.mouse.down();await page.mouse.move(900,450,{steps:12});await page.mouse.up();
+  await page.waitForTimeout(400);
+  const after=await page.locator('canvas').screenshot();
+  expect(before.equals(after)).toBe(false);
+  const fonts=await page.evaluate(async()=>{
+    await document.fonts.ready;
+    return {luum:document.fonts.check('24px LUUM','LUUM'),pretendard:document.fonts.check('14px Pretendard','빛'),family:getComputedStyle(document.querySelector('.product-title')).fontFamily,overflow:document.documentElement.scrollWidth>innerWidth};
   });
-  await expect(page.locator("video")).toHaveJSProperty("paused", true);
-  await page.screenshot({
-    path: "qa/mobile-reduced-motion.png",
-    fullPage: true,
-  });
+  expect(fonts.luum).toBe(true);expect(fonts.pretendard).toBe(true);expect(fonts.family).toContain('LUUM');expect(fonts.overflow).toBe(false);
+  expect(errors).toEqual([]);
 });
 
-test("motion toggle cleans up and restores pin, resize rebuilds once", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.locator('.site-header a[href="#products"]').first().click();
-  await page.locator(".motion-toggle").click();
-  await expect(page.locator(".pin-spacer")).toHaveCount(0);
-  await expect(page.locator('.product-scene[aria-hidden="true"]')).toHaveCount(
-    0,
-  );
-  await page.locator(".motion-toggle").click();
-  await expect(page.locator(".pin-spacer")).toHaveCount(1);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForTimeout(600);
-  await expect(page.locator(".pin-spacer")).toHaveCount(1);
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.waitForTimeout(600);
-  await expect(page.locator(".pin-spacer")).toHaveCount(1);
+test('portrait layouts, all collection controls, and reduced motion', async ({page}) => {
+  test.setTimeout(180000);
+  await page.setViewportSize({width:390,height:844});await enter(page);
+  await page.waitForTimeout(1500);await page.screenshot({path:'qa/final-mobile.png'});
+  await page.getByRole('button',{name:'금빛 패턴',exact:true}).click();
+  await expect.poll(async()=>(await scene(page)).progress).toBeCloseTo(1,1);
+  await page.screenshot({path:'qa/final-mobile-detail.png'});
+  await page.getByRole('button',{name:'컬렉션',exact:true}).click();
+  await expect.poll(async()=>(await scene(page)).gallery,{timeout:20000}).toBe(1);
+  await page.screenshot({path:'qa/final-mobile-collection.png'});
+  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.setViewportSize({width:320,height:740});
+  await page.getByRole('button',{name:'오브제',exact:true}).click();
+  await expect.poll(async()=>(await scene(page)).progress).toBe(0);
+  await page.screenshot({path:'qa/final-small-mobile.png'});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.getByRole('button',{name:'PEARL 펄 보기'}).click();
+  await expect.poll(async()=>(await scene(page)).selected).toBe(4);
 });
 
-test("keyboard entry, film playback and image failure fallback", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.keyboard.press("Tab");
-  await expect(page.locator(".skip-link")).toBeFocused();
-  await expect(page.locator(".skip-link")).toBeInViewport();
-  await page.locator(".film-button").click();
-  await expect(page.locator("video")).toHaveJSProperty("paused", false);
-  await page.locator(".film-button").click();
-  await expect(page.locator("video")).toHaveJSProperty("paused", true);
-  await page.route("**/product-03.svg", (route) => route.abort());
-  await page.reload();
-  await expect(page.locator("#product-03 .media-fallback")).toHaveCount(1);
+test('WebGL unavailable shows actual rendered source product images', async ({page}) => {
+  await page.addInitScript(()=>{
+    const get=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(kind,...args){if(kind==='webgl2'||kind==='webgl'||kind==='experimental-webgl')return null;return get.call(this,kind,...args)};
+  });
+  await page.goto('/');await page.getByRole('button',{name:'컬렉션 감상하기'}).click();
+  await expect(page.locator('.fallback-stage')).toBeVisible();
+  await page.getByRole('button',{name:'UMBER 엄버 보기'}).click();
+  await expect(page.locator('.fallback-stage img')).toHaveAttribute('src',/luum-01.png/);
+  await expect.poll(()=>page.locator('.fallback-stage img').evaluate(i=>i.naturalWidth)).toBeGreaterThan(0);
+  await page.screenshot({path:'qa/final-webgl-fallback.png'});
 });

@@ -1,0 +1,7 @@
+import {chromium} from '@playwright/test';import{homedir}from'node:os';import assert from'node:assert/strict';
+const browser=await chromium.launch({headless:true,executablePath:`${homedir()}/Library/Caches/ms-playwright/chromium-1161/chrome-mac/Chromium.app/Contents/MacOS/Chromium`});
+const page=await browser.newPage({viewport:{width:320,height:740}});const errors=[];const requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{requests.push({url:r.url(),status:r.status()});if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`)});
+await page.goto('http://127.0.0.1:4174/LUUM/');await page.getByRole('button',{name:'컬렉션 감상하기'}).click({timeout:120000});await page.locator('.opening').waitFor({state:'hidden'});await page.waitForTimeout(1200);await page.screenshot({path:'qa/final-pages-mobile.png'});
+assert.equal(JSON.parse(await page.locator('canvas').getAttribute('data-scene')).models,5);assert.equal(requests.filter(r=>r.url.endsWith('.glb')).length,5);assert.equal(errors.length,0,JSON.stringify(errors));assert.ok(requests.filter(r=>r.url.endsWith('.woff2')).length>=3);
+await page.getByRole('button',{name:'PEARL 펄 보기'}).click();await page.waitForTimeout(1500);assert.equal(JSON.parse(await page.locator('canvas').getAttribute('data-scene')).selected,4);
+console.log(JSON.stringify({path:'/LUUM/',glbs:requests.filter(r=>r.url.endsWith('.glb')).length,fonts:requests.filter(r=>r.url.endsWith('.woff2')).length,errors}));await browser.close();

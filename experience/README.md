@@ -1,77 +1,54 @@
-# LUUM interactive experience
+# LUUM — The Shape of Stillness
 
-React + Vite + GSAP ScrollTrigger로 만든 LUUM 인터랙티브 브랜드 사이트. GitHub Pages 사이트 루트에 게시한다.
+기존 Vite / React 프로젝트를 실제 Three.js GLB 경험으로 교체했습니다. 원본 Blender 파일과 브랜드 폰트는 보존했습니다. `reference-luum-v1` Next.js 프로젝트는 변경하지 않았습니다.
 
 ## 실행
 
-Node.js 20.19+ 또는 22.12+.
-
 ```sh
-cd experience
 npm ci
 npm run dev
 ```
 
-http://127.0.0.1:5173/ 에서 확인. 루트 저장소에서 `cd experience`를 실행한다.
+브라우저: http://127.0.0.1:5173/
+Mac에서는 기존 `Start LUUM.command`를 실행해도 됩니다.
 
 ```sh
+npm test
+npm run test:browser
 npm run build
 npm run preview
-npm test
-npx playwright test
 ```
 
-브라우저 검증은 `npx playwright install chromium`이 필요하다. 2560×1440(iMac 큰 창), 1920×1080, 390×844를 테스트한다. 해상도는 물리 디스플레이 인치 수가 아닌 **CSS 브라우저 viewport** 기준이다. OS 확대율과 창 크기에 따라 실제 레이아웃은 달라진다.
+`dist/`는 정적 배포 결과입니다. Vite `base: './'`를 사용하므로 `/LUUM/` 같은 GitHub Pages 하위 경로와 일반 루트 호스팅에서 동작합니다. 기존 상위 저장소의 `.github/workflows/luum-pages.yml`을 유지했습니다.
 
-## 원본과 배포 보호
+## 경험
 
-- 작업 브랜치: `development/interactive-brand`.
-- `main`에 반영되면 GitHub Actions가 `experience/`를 빌드해 GitHub Pages 사이트 루트에 게시하며 기존 Coming Soon 화면을 교체한다.
-- Pages URL: https://ysy6631y.github.io/LUUM/
-- Vite `base: '/LUUM/'`는 프로젝트 Pages 경로에 맞춘다.
+- 실제 5개 제품과 텍스처 로딩 → 입장
+- 하단 제품 선택: 금색 패턴, 원본 색상·형태가 다른 GLB 사이의 깊이 전환
+- 상단 컬렉션: 5개 실제 모델을 한 화면에서 선택
+- 스크롤: 전체 오브제 → 금빛 패턴 확대 → 상단 링 → 리추얼
+- 드래그: 제품 회전. 마우스 이동: 절제된 시점·조명 반응
+- 우측 점: 장면 바로가기. 키보드 포커스·ESC 닫기 지원
+- 모션 줄이기 버튼 및 시스템 reduced-motion 지원
+- WebGL 불가·컨텍스트 소실·모델 로딩 실패: 원본 Blender로 렌더링한 제품 이미지 탐색
 
-## 콘텐츠 교체
+## 실제 에셋
 
-`src/content.js`가 미디어와 카피의 단일 진입점이다.
+`public/models/luum-01~05.glb`는 제공된 `LUUM_TEXTURE.blend`의 `PRODUCT_01~05` 컬렉션에서 직접 내보냈습니다. 각 GLB는 BODY, GOLD_RING, ENGRAVING을 유지합니다. 재모델링·대체 용기·지오메트리 단순화는 하지 않았습니다. 원본 절차형 스톤 셰이더는 1024px 색/노멀 텍스처로 베이킹했습니다. Meshopt 압축을 사용합니다. UV/탄젠트가 없는 금속에 GLB 이방성 확장을 적용했을 때 발생한 잘못된 반사는 내보낸 복사본에서 해당 확장만 제거해 해결했습니다. 금색 원본 base color, metallic, roughness는 유지했습니다.
 
-- `opening.poster`, `opening.video`, `opening.videoWebm`: `public/` 기준 경로. 현재 영상은 LUUM-V1의 기존 영상을 프리뷰로 사용. 영상 교체 시 MP4와 WebM 경로를 함께 바꾸거나 `videoWebm`을 빈 문자열로 비운다. `video: ''`로 두면 정적 영상 플레이스홀더로 동작.
-- 영상은 자동재생하지 않음. 사용자가 Play film을 누를 때만 재생. 화면 이탈·탭 비활성·모션 감소 설정 전환 시 정지.
-- `story.image`, `values.image`: 무드 이미지. 현재 기존 브랜드 영상에서 추출한 정지 프레임.
-- `products`: 정확히 5개. id·title·line·description·color·ink·image·layout 교체.
-- 투명 PNG/WebP 또는 SVG를 제품 이미지로 권장. 현재 SVG는 실제 제품/포장 디자인이 아닌 명시적 플레이스홀더.
-- 교체 이미지에 오류가 나면 대체 영역을 표시하며 스크롤 무대는 유지됨.
-- 원본 고해상도 이미지는 적절히 리사이즈하고 긴 설명은 모바일에서 다시 검증할 것.
+`public/models/*.png`는 원본 모델의 Blender 렌더이며 선택기와 WebGL 대체 화면에 사용됩니다. 제품명 UMBER / SIENNA / SAND / IVORY / PEARL은 원본 번호에 대응하는 편집용 명칭입니다. 성분·효능·실제 상품명을 추정하지 않았습니다.
 
-## 인터랙션 구조
+`public/media/LUUM.woff2`는 첨부 폰트와 SHA-256이 동일합니다. 영문 대·소문자, 숫자, 공백만 지원합니다. 실제 @font-face와 unicode-range로 로고·메인 헤드라인·제품명에 적용하며, UI는 Inter / Pretendard입니다.
 
-- `src/useExperience.js`: GSAP 수명주기, 미디어쿼리, 섹션 타임라인.
-- `src/motionSpec.js`: 제품 타임라인의 시간 비율, 스크롤 거리, 보간 설정.
-- `src/styles.css`: 편집 구도와 반응형 크기.
-- 제품 5개는 하나의 pinned stage. 이미지 변형 → 설명 순차 등장 → 읽기 구간 → 다음 장면 순서.
-- 데스크톱 제품 구간 스크롤 거리: viewport 높이 × 5 × 1.35. 모바일은 × 1.05.
-- 타임라인은 스크롤에 종속되어 빠른/역방향 이동을 되돌릴 수 있음.
-- 제품 숫자는 드래그 캐러셀이 아니라 해당 스크롤 위치로 이동하는 접근 가능한 바로가기 버튼.
-- `prefers-reduced-motion: reduce` 또는 ‘모든 제품 펼쳐보기’에서는 pin/스크롤 모션을 제거하고 다섯 제품을 문서 순서대로 표시.
+## 주요 파일
 
-## 한계
+- `src/scene.js`: GLB, 조명, 카메라, 모델 전환, 드래그, 렌더링 제어
+- `src/main.jsx`: 로딩, 제품·컬렉션 선택, 스크롤 레이어, 접근성
+- `src/content.js`: 제품 설명과 편집용 이름
+- `src/styles.css`: 브랜드 폰트와 데스크톱·모바일 구성
+- `tools/export_models.py`: 원본을 읽기만 하는 베이킹/GLB 변환
+- `tools/render_posters.py`: 원본 제품의 투명 PNG 렌더링
+- `docs/RESEARCH.md`: 레퍼런스 증거·구현 범위·차이
+- `docs/QA.md`: 실제 검증 결과
 
-실제 제품 사진·확정 카피가 없으므로 가상 제품명과 제안용 브랜드 문구를 사용한다. 3D/360°, 쇼핑·회원·문의 백엔드는 포함하지 않는다. Cartier 원본은 403으로 접근할 수 없어 제작사의 공개 시연 영상으로 검증 가능한 구도만 연구했다. 원본의 easing·pin 거리·모든 기기별 동작을 동일하게 복제했다고 주장하지 않는다.
-
-- [조사 근거](docs/RESEARCH.md)
-- [출처·라이선스](docs/THIRD_PARTY.md)
-- [검증 결과](docs/QA.md)
-
-## macOS 빠른 실행과 테스트 브라우저
-
-Finder에서 `Start LUUM.command`를 더블클릭하면 서버와 브라우저가 열린다. 개발 서버는 `Ctrl+C`로 종료한다.
-
-현재 환경(macOS 13)은 최신 Playwright 관리 브라우저 지원 대상이 아니므로 Chromium 134를 별도로 설치해 검증했다. 프로젝트의 Playwright 의존성은 최신 버전을 유지하고, `playwright.config.js`에서 사용 가능한 Chromium 실행 파일을 선택한다. 다른 설치 위치는 `CHROMIUM_EXECUTABLE` 환경변수로 지정할 수 있다. 일반적인 최신 macOS에서는 `npx playwright install chromium` 사용.
-
-macOS 13에서 동일한 검증 브라우저 준비:
-
-```sh
-PLAYWRIGHT_SKIP_BROWSER_GC=1 npx --yes playwright@1.51.1 install chromium
-npm run test:browser
-```
-
-스크롤 녹화: `qa/luum-scroll-demo.webm`. 큰 화면과 모바일 스크린샷은 `qa/`에 보관. 녹화 보조 스크립트는 `qa/record.mjs`이며 macOS 13에서는 호환되는 Playwright 드라이버의 모듈 경로를 `PLAYWRIGHT_MODULE`로 전달해야 한다.
+원본 경로는 변환 도구 상단 `ROOT`에 설정되어 있습니다. 두 스크립트는 `.blend`를 저장하거나 덮어쓰지 않습니다. 구 프로젝트의 영상·SVG는 소스에 보존하되 최종 배포에서는 제외합니다.

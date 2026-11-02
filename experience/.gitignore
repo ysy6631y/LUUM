@@ -4,3 +4,6 @@ dist/
 test-results/
 playwright-report/
 qa/recording/
+.local/
+qa/debug-*.png
+qa/new-*.png
