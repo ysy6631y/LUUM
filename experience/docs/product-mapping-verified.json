@@ -1,0 +1,57 @@
+[
+  {
+    "name": "FOAM CLEANSER",
+    "asset": "03",
+    "pattern": "Diamond Grid",
+    "scent": "캐모마일",
+    "meshes": [
+      "PRODUCT_03_BODY_fixed",
+      "03_diamond__GOLD_top_rim",
+      "ENGRAVING_03"
+    ]
+  },
+  {
+    "name": "SHAMPOO",
+    "asset": "01",
+    "pattern": "Orthogonal Grid",
+    "scent": "로즈마리",
+    "meshes": [
+      "01_grid__BODY_logo_engraved",
+      "01_grid__GOLD_top_rim",
+      "ENGRAVING_01"
+    ]
+  },
+  {
+    "name": "CONDITIONER",
+    "asset": "02",
+    "pattern": "Horizontal Lines",
+    "scent": "라벤더",
+    "meshes": [
+      "02_horizontal__BODY_logo_engraved",
+      "02_horizontal__GOLD_top_rim",
+      "ENGRAVING_02"
+    ]
+  },
+  {
+    "name": "BODY WASH",
+    "asset": "04",
+    "pattern": "Chevron",
+    "scent": "피오니",
+    "meshes": [
+      "04_zigzag__BODY_logo_engraved",
+      "04_zigzag__GOLD_top_rim",
+      "ENGRAVING_04"
+    ]
+  },
+  {
+    "name": "BODY LOTION",
+    "asset": "05",
+    "pattern": "Diagonal Lines",
+    "scent": "캐모마일",
+    "meshes": [
+      "05_diagonal__BODY_logo_engraved",
+      "05_diagonal__GOLD_top_rim",
+      "ENGRAVING_05"
+    ]
+  }
+]

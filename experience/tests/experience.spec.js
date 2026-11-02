@@ -1,116 +1,52 @@
-import { test, expect } from '@playwright/test';
-const scene = page => page.locator('.product-canvas').getAttribute('data-scene').then(v=>JSON.parse(v||'{}'));
-async function enter(page) {
-  await page.goto('/');
-  await page.getByRole('button',{name:'컬렉션 감상하기'}).click({timeout:120000});
-  await expect(page.locator('.opening')).toHaveClass(/opening-out/);
-  await expect(page.locator('.opening')).toBeHidden();
-  await expect.poll(async()=>(await scene(page)).models).toBe(5);
-  await expect.poll(async()=>(await scene(page)).intro).toBe(0);
-}
+import {test,expect} from '@playwright/test';
+import {products,storyLines} from '../src/content.js';
+const scene=page=>page.locator('.product-canvas').getAttribute('data-scene').then(v=>JSON.parse(v||'{}'));
+async function loaded(page){await page.goto('/');await expect(page.locator('.preloader')).toHaveCount(0,{timeout:120000});await expect.poll(async()=>(await scene(page)).models,{timeout:120000}).toBe(5);}
+async function scrollTo(page,id,fraction=0){await page.evaluate(({id,fraction})=>{const e=document.getElementById(id);scrollTo(0,e.offsetTop+Math.max(0,e.offsetHeight-innerHeight)*fraction);},{id,fraction});}
 
-test('five source models, selection, continuous detail, collection, and fonts', async ({page}) => {
-  test.setTimeout(180000);
-  await page.setViewportSize({width:1440,height:1000});
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
-  await enter(page);
-  await page.screenshot({path:'qa/final-desktop-ivory.png'});
-  const names=['UMBER 엄버','SIENNA 시에나','SAND 샌드','IVORY 아이보리','PEARL 펄'];
-  for(let i=0;i<5;i++) {
-    await page.getByRole('button',{name:`${names[i]} 보기`}).click();
-    await expect.poll(async()=>(await scene(page)).selected).toBe(i);
-    await expect(page.locator('.product-title')).toHaveText(names[i].split(' ')[0]);
-    for(let sample=0;sample<5;sample++){await page.waitForTimeout(240);expect((await scene(page)).solid).toBe(true);}
-    await page.screenshot({path:`qa/final-product-0${i+1}.png`});
-  }
-  await page.getByRole('button',{name:'IVORY 아이보리 보기'}).click();
-  for(const [index,label] of [[1,'금빛 패턴'],[2,'디테일'],[3,'시그니처'],[4,'컬렉션 피날레']]) {
-    await page.getByRole('button',{name:label,exact:true}).click();
-    await expect.poll(async()=>(await scene(page)).progress,{timeout:15000}).toBeCloseTo(index,1);
-    await page.waitForTimeout(900);
-    await page.screenshot({path:`qa/final-desktop-scene-${index}.png`});
-  }
-  await page.getByRole('button',{name:'컬렉션',exact:true}).click();
-  await expect.poll(async()=>(await scene(page)).gallery,{timeout:20000}).toBe(1);
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.screenshot({path:'qa/final-desktop-collection.png'});
-  await page.getByRole('button',{name:'SIENNA 탐색'}).click();
-  await expect.poll(async()=>(await scene(page)).selected).toBe(1);
-  await expect.poll(async()=>(await scene(page)).gallery).toBe(0);
-  await expect.poll(async()=>(await scene(page)).progress).toBe(0);
-  // Drag changes the actual canvas pixels, while preserving the selected model.
-  await page.waitForTimeout(1600);
-  const before=await page.locator('.product-canvas').screenshot();
-  await page.mouse.move(720,450);await page.mouse.down();await page.mouse.move(900,450,{steps:12});await page.mouse.up();
-  await page.waitForTimeout(400);
-  const after=await page.locator('.product-canvas').screenshot();
-  expect(before.equals(after)).toBe(false);
-  await expect.poll(async()=>(await scene(page)).rotation).toBeGreaterThan(.9);
-  const fonts=await page.evaluate(async()=>{
-    await document.fonts.ready;
-    return {luum:document.fonts.check('24px LUUM','LUUM'),pretendard:document.fonts.check('14px Pretendard','빛'),family:getComputedStyle(document.querySelector('.product-title')).fontFamily,overflow:document.documentElement.scrollWidth>innerWidth};
-  });
-  expect(fonts.luum).toBe(true);expect(fonts.pretendard).toBe(true);expect(fonts.family).toContain('LUUM');expect(fonts.overflow).toBe(false);
-  expect(errors).toEqual([]);
+test('source matching, solid switches, detail cameras, drag priority and keyboard rotation',async({page})=>{
+ test.setTimeout(240000);await page.setViewportSize({width:1440,height:1000});const errors=[];page.on('pageerror',e=>errors.push(e.message));await loaded(page);await scrollTo(page,'showcase');
+ await expect(page.locator('.experience')).toHaveAttribute('data-viewing','true');
+ for(let i=0;i<5;i++){
+  const p=products[i];await page.getByRole('button',{name:`${p.name} ${p.ko} 보기`,exact:true}).click();
+  await expect.poll(async()=>(await scene(page)).selected).toBe(i);await expect(page.locator('.product-title')).toHaveText(p.name);
+  for(let n=0;n<3;n++){expect((await scene(page)).solid).toBe(true);await page.waitForTimeout(220);}
+  expect((await scene(page)).asset).toBe(p.id);await page.waitForTimeout(700);await page.screenshot({path:`qa/revised-product-${p.id}.png`});
+ }
+ await page.getByRole('button',{name:'FOAM CLEANSER 폼 클렌저 보기'}).click();await page.waitForTimeout(1300);
+ await page.mouse.move(720,430);await page.mouse.down();await page.mouse.move(920,430,{steps:12});await scrollTo(page,'showcase',.25);await page.waitForTimeout(600);
+ expect((await scene(page)).progress).toBeLessThan(.02);await page.mouse.up();await expect.poll(async()=>(await scene(page)).progress).toBeCloseTo(1,1);expect((await scene(page)).rotation).toBeGreaterThan(1);
+ await page.screenshot({path:'qa/revised-desktop-detail.png'});await page.locator('.product-canvas').focus();const r=(await scene(page)).rotation;await page.keyboard.press('ArrowRight');await expect.poll(async()=>(await scene(page)).rotation).toBeGreaterThan(r+.15);
+ for(const [fraction,file]of[[.5,'ring'],[.75,'signature'],[1,'lineup']]){await scrollTo(page,'showcase',fraction);await expect.poll(async()=>(await scene(page)).progress).toBeCloseTo(fraction*4,1);await page.waitForTimeout(500);await page.screenshot({path:`qa/revised-desktop-${file}.png`});}
+ expect(errors).toEqual([]);
 });
 
-test('portrait layouts, all collection controls, and reduced motion', async ({page}) => {
-  test.setTimeout(180000);
-  await page.setViewportSize({width:390,height:844});await enter(page);
-  await page.waitForTimeout(1500);await page.screenshot({path:'qa/final-mobile.png'});
-  await page.getByRole('button',{name:'금빛 패턴',exact:true}).click();
-  await expect.poll(async()=>(await scene(page)).progress).toBeCloseTo(1,1);
-  await page.screenshot({path:'qa/final-mobile-detail.png'});
-  await page.getByRole('button',{name:'컬렉션',exact:true}).click();
-  await expect.poll(async()=>(await scene(page)).gallery,{timeout:20000}).toBe(1);
-  await page.screenshot({path:'qa/final-mobile-collection.png'});
-  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
-  await page.setViewportSize({width:320,height:740});
-  await page.getByRole('button',{name:'오브제',exact:true}).click();
-  await expect.poll(async()=>(await scene(page)).progress).toBe(0);
-  await page.screenshot({path:'qa/final-small-mobile.png'});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await page.getByRole('button',{name:'PEARL 펄 보기'}).click();
-  await expect.poll(async()=>(await scene(page)).selected).toBe(4);
+test('compact story, source typography, accessible pattern inspection and non-repeating loader',async({page})=>{
+ test.setTimeout(180000);await page.setViewportSize({width:1440,height:1000});await loaded(page);await page.waitForTimeout(800);await page.screenshot({path:'qa/revised-opening.png'});
+ await expect(page.locator('.glass-sheet,.story-glass,.narrative-scene')).toHaveCount(0);
+ const copy=await page.locator('.brand-editorial-copy').innerText();let position=-1;for(const line of storyLines){const n=copy.indexOf(line);expect(n).toBeGreaterThan(position);position=n;}
+ expect(await page.locator('#brand-story').evaluate(e=>e.offsetHeight/innerHeight)).toBeLessThan(1.5);
+ await scrollTo(page,'brand-story');await page.waitForTimeout(900);await page.screenshot({path:'qa/revised-story.png'});
+ await scrollTo(page,'collection');await page.waitForTimeout(600);await page.screenshot({path:'qa/revised-collection.png'});
+ const lotion=page.getByRole('button',{name:'BODY LOTION Diagonal Lines 3D 디테일 보기'});await lotion.focus();await page.keyboard.press('Enter');await expect.poll(async()=>(await scene(page)).selected).toBe(4);await expect.poll(async()=>(await scene(page)).progress,{timeout:15000}).toBeCloseTo(1,1);await page.screenshot({path:'qa/revised-lotion-detail.png'});
+ const fonts=await page.evaluate(async()=>{await document.fonts.ready;return{brand:document.fonts.check('24px LUUM','LUUM'),ko:document.fonts.check('16px Pretendard','감각'),family:getComputedStyle(document.querySelector('.product-title')).fontFamily,overflow:document.documentElement.scrollWidth>innerWidth};});expect(fonts.brand&&fonts.ko).toBe(true);expect(fonts.family).toContain('LUUM');expect(fonts.overflow).toBe(false);
+ await page.reload();await expect(page.locator('.preloader')).toHaveCount(0);expect(await page.evaluate(()=>sessionStorage.getItem('luum-loaded'))).toBe('true');
 });
 
-test('WebGL unavailable shows actual rendered source product images', async ({page}) => {
-  await page.addInitScript(()=>{
-    const get=HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext=function(kind,...args){if(kind==='webgl2'||kind==='webgl'||kind==='experimental-webgl')return null;return get.call(this,kind,...args)};
-  });
-  await page.goto('/');await page.getByRole('button',{name:'컬렉션 감상하기'}).click();
-  await expect(page.locator('.fallback-stage')).toBeVisible();
-  await page.getByRole('button',{name:'UMBER 엄버 보기'}).click();
-  await expect(page.locator('.fallback-stage img')).toHaveAttribute('src',/luum-01.png/);
-  await expect.poll(()=>page.locator('.fallback-stage img').evaluate(i=>i.naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({path:'qa/final-webgl-fallback.png'});
+test('mobile layout, touch-compatible rotation area, all five products and reduced motion',async({page})=>{
+ test.setTimeout(180000);await page.setViewportSize({width:390,height:844});await loaded(page);await page.screenshot({path:'qa/revised-mobile-opening.png'});await scrollTo(page,'brand-story');await page.waitForTimeout(700);await page.screenshot({path:'qa/revised-mobile-story.png'});await scrollTo(page,'showcase');
+ for(let i=0;i<5;i++){const p=products[i];await page.getByRole('button',{name:`${p.name} ${p.ko} 보기`,exact:true}).click();await expect.poll(async()=>(await scene(page)).selected).toBe(i);}
+ await page.waitForTimeout(1200);await page.screenshot({path:'qa/revised-mobile-lotion.png'});expect(await page.locator('.product-canvas').evaluate(e=>getComputedStyle(e).touchAction)).toBe('pan-y');
+ await page.getByRole('button',{name:'FOAM CLEANSER 폼 클렌저 보기'}).click();await page.waitForTimeout(1200);await page.screenshot({path:'qa/revised-mobile-product.png'});await scrollTo(page,'showcase',.25);await expect.poll(async()=>(await scene(page)).progress).toBeCloseTo(1,1);await page.screenshot({path:'qa/revised-mobile-detail.png'});
+ await scrollTo(page,'collection');await page.waitForTimeout(700);await page.screenshot({path:'qa/revised-mobile-collection.png'});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.setViewportSize({width:320,height:740});await scrollTo(page,'showcase');await page.waitForTimeout(1000);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'qa/revised-small-mobile.png'});
+ await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(900);expect(await page.locator('.atmosphere-canvas,.glass-sheet,.glass-ui,.product-note').count()).toBe(0);expect((await scene(page)).daylight).toBe(0);expect((await scene(page)).solid).toBe(true);
+
 });
 
-
-test('atmosphere, matching cursor and reduced motion respond without making products transparent', async ({page})=>{
-  test.setTimeout(120000);
-  await page.setViewportSize({width:1280,height:900});
-  await enter(page);
-  await expect(page.locator('.cursor-arrows,.object-caption,.interaction-tools')).toHaveCount(0);
-  await expect(page.getByText('Drag to rotate',{exact:true})).toHaveCount(0);
-  expect((await scene(page)).sunlight).toBe(true);
-  const background=page.locator('.atmosphere-canvas');
-  const initialDaylight=(await scene(page)).daylight;
-  const a=await background.screenshot();await page.waitForTimeout(1500);const b=await background.screenshot();
-  expect(a.equals(b)).toBe(false);
-  expect((await scene(page)).daylight).toBeGreaterThan(initialDaylight);
-  await page.mouse.move(640,400);
-  await expect(page.locator('.object-cursor')).toHaveAttribute('data-visible','true');
-  await expect(page.locator('.object-cursor')).toHaveAttribute('data-mode','rotate');
-  await page.mouse.down();await expect(page.locator('.object-cursor')).toHaveAttribute('data-down','true');await page.mouse.up();
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForTimeout(1800);
-  const frozenDaylight=(await scene(page)).daylight;
-  const c=await background.screenshot();await page.waitForTimeout(800);const d=await background.screenshot();
-  expect((await scene(page)).daylight).toBe(frozenDaylight);
-  expect(c.equals(d)).toBe(true);
-  expect((await scene(page)).solid).toBe(true);
-  await page.screenshot({path:'qa/atmosphere-reduced-motion.png'});
+test('real source image fallback remains navigable when WebGL is unavailable',async({page})=>{
+ await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){if(/webgl/.test(type))return null;return original.call(this,type,...args)}});
+ await page.goto('/');await expect(page.locator('.preloader')).toHaveCount(0,{timeout:30000});await scrollTo(page,'showcase');await expect(page.locator('.fallback-stage')).toHaveCSS('opacity','1');
+ for(const p of products){await page.getByRole('button',{name:`${p.name} ${p.ko} 보기`,exact:true}).click();await expect(page.locator('.fallback-stage img')).toHaveAttribute('src',new RegExp(`luum-${p.id}.png`));}
+ await page.screenshot({path:'qa/revised-fallback.png'});
 });

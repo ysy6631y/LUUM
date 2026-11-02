@@ -1,76 +1,39 @@
-# 화면 정리 / 제품 자연광 검증 — 2026-11-03 KST
+# Final local QA — 2026-11-03
 
-- 커서 양옆 화살표, 하단 좌측 카운터·제품 한글명, 우측 Drag to rotate·모션 버튼 제거. 중앙 제품 선택기 유지.
-- 컬렉션 이름 위치를 67vh → 72vh, 컬렉션 타이틀을 76vh → 84vh로 조정. 히어로 제품 크기는 유지.
-- 배경 셰이더의 물결 변형과 명암 대비, 반사선, 이동하는 자연광 띠를 강화.
-- 원본 PBR 재질을 받는 실제 SpotLight.map을 사용해 부드러운 패브릭 광원을 제품 표면에 투사. 움직임은 배경 시간과 동기화. 깊이·불투명도·원본 형상 유지.
-- 1440×1000, 1920×1080 데스크톱 Chromium에서 제품 위 조명·커서·하단 정리·컬렉션 간격을 확인. JS/셰이더 오류 0.
-- 증거: `qa/daylight-hero.png`, `qa/daylight-hero-later.png`, `qa/daylight-umber.png`, `qa/daylight-collection.png`, `qa/daylight-collection-wide.png`.
-- 원본 에셋 검사 2개, 데스크톱/대체 화면/커서·조명 검사 3개 통과. 시스템 모션 감소에서 남아 있던 스크롤 안내선의 반복도 중단하도록 수정하고 재검증했다. 최종 빌드 성공.
-- 모바일 세부 작업과 푸시·배포는 수행하지 않음.
+## Delivered state
 
-아래는 이전 수정 검증 기록이다.
+Latest user direction applied: no water/refraction background effect and no added Glass UI. Preserve the existing product interaction and the five-pattern collection. The seven story sentences are compact editorial copy, not sequential full-screen text heroes. Product canvas is contained by the product frame; each section has an opaque background. Oimo Drops was inspected only, not added to this version.
 
----
+## Checks passed
 
-# 현재 데스크톱 수정 검증 — 2026-11-03 KST
+- `npm test`: 3 passed. Five source GLBs retain body, gold ring and separate gold pattern meshes; original PBR/baked textures and Meshopt are intact. Category/scent assignments match verified native geometry. LUUM font bytes match source SHA.
+- `npm run test:browser`: 4 passed in Chromium (1.1min). Actual 1440×1000 desktop, 390×844 mobile and 320×740 narrow mobile layouts inspected.
+- Every category selected and rendered: FOAM CLEANSER/03 diamond; SHAMPOO/01 grid; CONDITIONER/02 horizontal; BODY WASH/04 zigzag; BODY LOTION/05 diagonal round vessel.
+- All sampled product switches stay opaque (`transparent=false`, `opacity=1`, `depthWrite=true`). No hollow-shell fade.
+- Drag changes actual model rotation and temporarily holds scroll camera progress; release resumes. Arrow keys rotate the focused 3D canvas.
+- Continuous pattern, ring, logo and real five-model lineup cameras work. Collection hover/focus previews the original product render; activation opens that actual GLB close-up.
+- First-session real asset loader automatically dismisses after all five models, font/image essentials; reload does not repeat it.
+- All seven supplied sentences remain in order; no giant Glass pane or narrative full-screen sequence remains.
+- LUUM and Pretendard loaded; LUUM is applied to Latin brand/product headings, Hangul uses Pretendard fallback. No horizontal overflow at checked sizes.
+- Reduced-motion preference freezes automatic object motion; water shader/canvas is absent entirely. Native vertical touch scrolling is retained (`touch-action:pan-y`).
+- WebGL-disabled browser successfully uses the five genuine source-render images and working selectors.
+- `npm run build`: successful. Only existing Three.js 583kB chunk size advisory remains; Three.js is dynamically loaded separately from the opening UI.
+- `node qa/verify-production.mjs`: local production build at `/LUUM/`, all five models loaded, solid materials true, water effect absent, zero browser errors and zero HTTP asset errors.
+- Original BLEND, supplied font and webfont SHA-256 checked again against `asset-integrity.json`: all unchanged.
+- `git diff --check`: no whitespace errors.
 
-- 실제 개발 서버와 Chromium에서 변경된 오프닝·히어로·패턴·링·음각·컬렉션 피날레를 렌더링했다.
-- 전환 중 원본 5개 제품의 재질이 `transparent=false`, `opacity=1`, `depthWrite=true`를 유지하는 것을 반복 검사했다. `qa/atmosphere-transition.png`에서 두 제품 모두 내부 노출 없이 불투명하게 이동한다.
-- `npm test`: 원본 GLB 구조/폰트 무결성 검사 2개 통과.
-- `npm run test:browser`: 4개 통과 (약 1.6분). 제품 5종 선택, 5개 스크롤 장면, 실제 회전값, 컬렉션 선택, 폰트, WebGL 대체 화면, 커서 상태, 모션 줄이기를 확인했다.
-- 데스크톱 1440×1000에서 실제 제품과 텍스트의 배치를 확인했다. `qa/atmosphere-opening.png`, `qa/atmosphere-hero.png`, `qa/atmosphere-scene-1~4.png`.
-- 배경 전용 WebGL 셰이더는 정점 3개짜리 삼각형 하나만 그린다. DPR 최대 1.25, 초당 최대 25회. 3D 컬렉션은 배경과 독립되어 정지 장면의 반복 렌더링을 피한다. 히어로 idle 렌더링은 초당 약 33회 이하로 제한한다.
-- 시스템 reduced-motion과 수동 모션 줄이기에서 자동 배경·제품 움직임이 멈추는 것을 확인했다. `qa/atmosphere-reduced-motion.png`.
-- 히어로 포즈의 scale은 기존 데스크톱 `.69`, 모바일 `.63`을 유지한다. 원본 모델과 폰트 파일은 변경하지 않았다.
-- 모바일 기본 회귀 검사는 통과했으며, 모바일 화면의 세부 디자인 조정은 최신 사용자 지시에 따라 데스크톱 완성 후 일괄 진행한다.
-- 이번 수정에 대해 Git 커밋·푸시·배포를 실행하지 않았다. 로컬 서버는 5173 포트로 유지한다.
+## Visual evidence
 
-아래는 이전 커밋의 최초 구현 검증 기록이다.
+Actual browser screenshots in `qa/`:
+- `revised-opening.png`, `revised-story.png`, `revised-collection.png`
+- `revised-product-01..05.png`, `revised-desktop-detail.png`, `revised-desktop-ring.png`, `revised-desktop-signature.png`, `revised-desktop-lineup.png`
+- `revised-lotion-detail.png`
+- `revised-mobile-opening.png`, `revised-mobile-story.png`, `revised-mobile-product.png`, `revised-mobile-lotion.png`, `revised-mobile-detail.png`, `revised-mobile-collection.png`, `revised-small-mobile.png`
+- `revised-fallback.png`
+- `production-opening.png`, `production-story.png`, `production-product.png`, `production-ending.png`
 
----
+Reference contact sheets and actual demo screenshots were visually compared in the temporary research directory only. New reference opening was not applied after the user's instruction to return to the earlier version with water removed.
 
-# 최종 검증 — 2026-11-03 KST
+## Practical limits
 
-## 실행 환경과 결과
-
-- 실제 개발 서버: Vite http://127.0.0.1:5173/, HTTP 200.
-- 실제 Chromium 134에서 WebGL 렌더링과 UI 조작을 수행했다. 연결된 CUA 브라우저가 없어서 저장소의 Playwright/Chromium으로 확인했다.
-- `npm test`: 2개 통과. GLB 5개 구조·실제 BODY/금색 링/패턴·텍스처·Meshopt와 폰트 SHA-256 검증.
-- `npm run test:browser`: 3개 통과 (51.9초). 데스크톱 전체 제품, 전환, 4개 스크롤 장면, 실제 드래그 픽셀 변화, 컬렉션, 폰트, 모바일, reduced-motion, WebGL 불가 대체 화면.
-- 모바일 구도 수정 후 `npm run test:browser -- --grep portrait`: 1개 재검증 통과.
-- `npm run build`: 성공. Three.js 코어 약 583KB minified에 대한 크기 안내 경고가 남으며 빌드 오류는 없다. 코어는 약 145KB gzip, 별도 동적 씬 청크를 사용한다.
-- 최종 정적 빌드 `/LUUM/` 하위 경로에서 직접 브라우저 검증: GLB 5개, 웹폰트 3개 모두 정상 응답, JS/HTTP 오류 0. PEARL 제품 선택 동작 확인.
-- 화면 크기: 1440×1000, 390×844, 320×740. 가로 넘침 없음.
-- 운영 의존성 `npm audit --omit=dev`: 취약점 0.
-
-## 실제 확인한 에셋
-
-| 원본 | 웹 화면에서 확인 |
-| --- | --- |
-| PRODUCT_01 | 진한 브라운, 격자 금색 패턴, 금색 상단 링, 하단 음각 |
-| PRODUCT_02 | 웜브라운, 가로 금색 패턴, 원본 실루엣 |
-| PRODUCT_03 | 밝은 브라운, 마름모 금색 패턴 |
-| PRODUCT_04 | 아이보리, 지그재그 금색 패턴 |
-| PRODUCT_05 | 낮고 둥근 밝은 용기, 사선 금색 패턴 |
-
-5개 GLB 합계 약 13MB. 디코딩은 초기 제품을 먼저, 나머지를 순서대로 진행해 메모리 급증을 줄인다. DPR은 데스크톱 1.8, 모바일 1.5로 제한한다. 카메라·제품·조명이 정지한 뒤에는 같은 장면을 반복 렌더링하지 않는다. 비활성 탭에서는 렌더링하지 않는다.
-
-## 수정한 문제
-
-1. 원본 이방성 확장에 필요한 UV/탄젠트 부재로 금속이 검정/흰색으로 보임 → 복사 GLB의 이방성 확장 제거, 원본 금색 PBR 수치 유지.
-2. 컬렉션 외곽 제품이 화면 밖으로 나감 → 화면 비율과 이름 버튼 위치에 맞춰 실제 카메라 투영 폭으로 배치 계산.
-3. 모델 전환 직후 투명 모델 중첩 → weight와 depthWrite를 함께 제어.
-4. 모바일 클로즈업과 헤드라인 중첩 → 모델은 위쪽 디테일, 문장은 아래쪽 배치.
-5. 320px 화면에서 제품 하단과 이름이 겹침 → 모바일 카메라 포즈 크기·높이 조정.
-6. 구 프로젝트의 영상/SVG·베이킹 중간 파일이 배포에 포함됨 → 소스는 보존하고 빌드 결과에서만 제외.
-
-## 증거
-
-`qa/final-product-01~05.png`, `qa/final-desktop-collection.png`, `qa/final-desktop-scene-1~3.png`, `qa/final-mobile.png`, `qa/final-mobile-detail.png`, `qa/final-mobile-collection.png`, `qa/final-pages-mobile.png`, `qa/final-webgl-fallback.png`.
-
-원본 BLEND와 첨부/웹용 LUUM 폰트의 SHA-256을 재확인해 변경되지 않았음을 확인했다. `docs/asset-integrity.json`.
-
-## 검증 한계
-
-Cartier 본 사이트와 제작사 동영상은 403이어서 원본의 정확한 시간·이징·카메라 경로에 대한 1:1 비교는 불가능했다. 제작사 공개 스크린샷 및 설명을 기준으로 구도를 비교했다. 실제 iPhone/Android 하드웨어와 Safari에서는 실행하지 않았으며 모바일 검증은 Chromium의 뷰포트·입력·미디어 환경을 사용했다. GitHub Pages에 푸시/배포하지 않았고 동일한 하위 경로 구조를 로컬 정적 서버에서 확인했다.
+Mobile checks use browser viewport emulation; physical iOS/Android GPU testing was not performed. No production deployment, push or remote publication was performed in this revision. The local Vite server remains running at http://127.0.0.1:5173/ . Work-start checkpoint: `9d9dd93`.

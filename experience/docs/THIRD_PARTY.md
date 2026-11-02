@@ -17,3 +17,9 @@
 | luum-01~05.glb / PNG | 위 Blender 원본 | 제공 모델의 웹용 변환 및 대체 화면 렌더 |
 
 기존 영상·SVG·이미지는 로컬 소스에 보존하되 현재 화면과 배포에는 사용하지 않습니다. Cartier / makemepulse 이미지는 레퍼런스 확인에만 사용했습니다.
+
+## November brand journey revision
+
+Original LUUM sheer image is a derived optimized copy from the user's local brand assets (`/Users/pc/Desktop/LUUM/image 1728.png`). Source files remain unchanged. Brand case-study media and Codrops demos were used for visual research only and are not shipped. The optical atmosphere and light mask are original project code; no third-party water effect library was installed. See `RESEARCH.md` and `ASSET_REVIEW.md`.
+
+Latest delivery: removed the water/refraction background shader and cancelled all Glass treatments. Oimo Drops and Studio Lumio were inspected only; no assets, source code, environment or sound from those sites are included.

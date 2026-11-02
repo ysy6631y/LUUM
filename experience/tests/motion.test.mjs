@@ -19,3 +19,15 @@ test('the supplied brand font is byte-for-byte preserved',()=>{
  const expected=JSON.parse(readFileSync(new URL('../docs/asset-integrity.json',import.meta.url))).files['luum/experience/public/media/LUUM.woff2'];
  assert.equal(createHash('sha256').update(readFileSync(new URL('../public/media/LUUM.woff2',import.meta.url))).digest('hex'),expected);
 });
+
+test('product categories and scents match the verified GLB pattern geometry',async()=>{
+ const{products}=await import('../src/content.js');
+ const expected=[['FOAM CLEANSER','03','diamond','Chamomile'],['SHAMPOO','01','grid','Rosemary'],['CONDITIONER','02','horizontal','Lavender'],['BODY WASH','04','zigzag','Peony'],['BODY LOTION','05','diagonal','Chamomile']];
+ assert.equal(products.length,5);
+ expected.forEach(([name,id,pattern,scent],i)=>{
+  assert.equal(products[i].name,name);assert.equal(products[i].id,id);assert.equal(products[i].scent,scent);
+  assert.ok(readGLB(id).meshes.some(m=>m.name.includes(pattern)));
+ });
+ assert.equal(products.filter(p=>p.vessel==='round').length,1);assert.equal(products.find(p=>p.vessel==='round').name,'BODY LOTION');
+ assert.notEqual(products[4].description,products[0].description);assert.equal(products[4].descriptionStatus,'source-confirmed');
+});

@@ -4,7 +4,6 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import gsap from 'gsap';
 import { asset, products } from './content';
-import { Atmosphere } from './atmosphere';
 import { createDaylightMap } from './daylight';
 
 const lerp = THREE.MathUtils.lerp;
@@ -12,10 +11,10 @@ const clamp = THREE.MathUtils.clamp;
 const smooth = t => t * t * (3 - 2 * t);
 
 export class ProductScene {
-  constructor(canvas, { atmosphereCanvas, onProgress, onReady, onError, onPick }) {
+  constructor(canvas, { onProgress, onReady, onError, onPick }) {
     this.canvas = canvas;
     this.disposed = false;
-    this.selected = 3;
+    this.selected = 0;
     this.gallery = { value: 0 };
     this.scroll = 0;
     this.progress = 0;
@@ -34,7 +33,6 @@ export class ProductScene {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = .95;
-    try { this.atmosphere = new Atmosphere(atmosphereCanvas); } catch { /* Animated CSS daylight remains available. */ }
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     const room = new RoomEnvironment();
     this.environment = pmrem.fromScene(room, .04);
@@ -65,7 +63,10 @@ export class ProductScene {
       this.readScroll();
     };
     this.readScroll = () => {
-      this.scroll = clamp(window.scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight) * 4, 0, 4);
+      const section = document.getElementById('showcase');
+      if (!section) return;
+      this.active = scrollY > section.offsetTop-innerHeight && scrollY < section.offsetTop+section.offsetHeight;
+      this.scroll = clamp((scrollY-section.offsetTop) / Math.max(1,section.offsetHeight-innerHeight)*4,0,4);
     };
     this.move = e => {
       this.pointer.x = (e.clientX / innerWidth - .5) * 2;
@@ -80,6 +81,7 @@ export class ProductScene {
     this.pointerDown = e => {
       this.down = true; this.lastX = e.clientX; this.lastY = e.clientY; this.lastInteraction = this.elapsed; this.startX = e.clientX; this.startY = e.clientY;
       canvas.style.cursor = 'grabbing';
+      if(e.pointerType !== 'touch') canvas.setPointerCapture(e.pointerId);
     };
     this.pointerUp = e => {
       if (this.down && (this.gallery.value > .9 || this.progress > 3.98) && Math.hypot(e.clientX - this.startX, e.clientY - this.startY) < 10) {
@@ -87,19 +89,19 @@ export class ProductScene {
         const hits = this.raycaster.intersectObjects(this.models.filter(Boolean), true);
         if (hits.length) { let o = hits[0].object; while (o.parent && o.userData.productIndex === undefined) o = o.parent; if (o.userData.productIndex !== undefined) this.onPick(o.userData.productIndex); }
       }
-      this.down = false; canvas.style.cursor = this.gallery.value > .5 ? 'pointer' : 'grab';
+      this.down = false; this.readScroll(); canvas.style.cursor = this.gallery.value > .5 ? 'pointer' : 'grab';
     };
     this.contextLost = e => { e.preventDefault(); onError('context'); };
     this.onPreference = () => this.setReducedMotion(this.manualReduced);
     this.preference = matchMedia('(prefers-reduced-motion: reduce)');
     this.preference.addEventListener('change', this.onPreference);
-    this.atmosphere?.setReducedMotion(this.reduced);
     window.addEventListener('resize', this.resize);
     window.addEventListener('scroll', this.readScroll, { passive: true });
     window.addEventListener('pointermove', this.move, { passive: true });
     canvas.addEventListener('pointerdown', this.pointerDown);
     window.addEventListener('pointerup', this.pointerUp);
     canvas.addEventListener('webglcontextlost', this.contextLost);
+    canvas.addEventListener('pointercancel', this.pointerUp);
     this.resize();
     this.tick = this.tick.bind(this);
     this.frame = requestAnimationFrame(this.tick);
@@ -119,7 +121,7 @@ export class ProductScene {
         const group = new THREE.Group(); group.add(object); group.scale.setScalar(4 / .19);
         // Bake export uses metres. A wrapper keeps the original scale/proportions intact.
         const root = new THREE.Group(); root.add(group);
-        root.userData = { productIndex: i, weight: i === this.selected ? 1 : 0, side: 1, materials: [] };
+        root.userData = { productIndex: i, assetId: products[i].id, meshNames: gltf.parser.json.meshes.map(m=>m.name), weight: i === this.selected ? 1 : 0, side: 1, materials: [] };
         object.traverse(mesh => {
           if (!mesh.isMesh) return;
           mesh.material = mesh.material.clone();
@@ -141,13 +143,13 @@ export class ProductScene {
     }
     if (!this.disposed) { this.ready = true; onReady(); }
   }
+  rotate(delta) { this.dragTarget += delta; this.lastInteraction = this.elapsed; }
   select(index) {
     if (index === this.selected) return;
     const previous = this.selected;
     this.selected = index;
     const direction = index > previous ? 1 : -1;
     this.dragTarget = 0; this.dragTiltTarget = 0;
-    this.atmosphere?.select(index, this.reduced);
     gsap.to(this.lighting, { warmth: [1,.8,.6,.3,.15][index], shift: (index-2)*.23, duration: this.reduced ? .01 : 1.5, ease: 'sine.inOut', overwrite: true });
     for (let i = 0; i < this.models.length; i++) {
       const model = this.models[i]; if (!model) continue;
@@ -165,7 +167,6 @@ export class ProductScene {
   }
   setReducedMotion(value = false) {
     this.manualReduced = value; this.reduced = value || this.preference.matches;
-    this.atmosphere?.setReducedMotion(this.reduced);
   }
   pose(progress) {
     const m = this.mobile;
@@ -185,7 +186,7 @@ export class ProductScene {
     if (document.hidden) { this.lastTime = now; return; }
     const dt = Math.min(.05, (now - (this.lastTime || now)) / 1000); this.lastTime = now;
     const damping = this.reduced ? 1 : 1 - Math.exp(-dt * 7);
-    this.progress = lerp(this.progress, this.scroll, damping);
+    if (!this.down) this.progress = lerp(this.progress, this.scroll, damping);
     this.pointer.sx = lerp(this.pointer.sx, this.reduced ? 0 : this.pointer.x, damping);
     this.pointer.sy = lerp(this.pointer.sy, this.reduced ? 0 : this.pointer.y, damping);
     this.elapsed += dt;
@@ -196,7 +197,6 @@ export class ProductScene {
     const intro = this.intro.value;
     const idleStrength = this.reduced || this.down ? 0 : smooth(clamp((this.elapsed-(this.lastInteraction || -3)-1)/2,0,1))*(1-g);
     const idle = Math.sin(this.elapsed*.38)*idleStrength;
-    this.atmosphere?.update(this.pointer.sx, this.pointer.sy, this.progress);
     // Portrait screens keep the full object in view without stretching its geometry.
     const cameraZ = 10.5 + Math.sin(this.progress*Math.PI)*.12 + this.lighting.shift*.18;
     const galleryZ = this.mobile ? Math.max(12, 7.8 / (this.camera.aspect * .536)) : 12;
@@ -204,7 +204,7 @@ export class ProductScene {
     const galleryStep = labelsWidth / innerHeight / 5 * (2 * Math.tan(Math.PI / 12) * galleryZ);
     this.camera.position.set(this.pointer.sx * .16 * (1-g), .45 - this.pointer.sy * .12 * (1-g), lerp(cameraZ, galleryZ, g));
     this.camera.lookAt(0, .05, 0);
-    const daylightTime = this.atmosphere?.uniforms.uTime.value ?? (this.reduced ? 0 : this.elapsed);
+    const daylightTime = 0; // Background VFX intentionally paused pending the user's reference.
     this.key.position.x = -4 + this.pointer.sx * .7 * (1-g) + Math.sin(daylightTime*.18)*.35 + this.lighting.shift;
     const signatureLight = Math.exp(-Math.pow((this.progress-3)/.45,2));
     this.key.position.x -= signatureLight*2.5;
@@ -223,7 +223,7 @@ export class ProductScene {
       const weight = model.userData.weight, visibility = lerp(weight, 1, g);
       model.visible = visibility > .001;
       if (!model.visible) { model.userData.shadow.visible = false; return; }
-      const jar = i === 4;
+      const jar = products[i].vessel === 'round';
       const heroScale = pose[6] * (jar ? 1.75 : 1);
       const galleryX = (i - 2) * galleryStep;
       model.position.set(lerp(lerp(pose[0], this.mobile ? .7 : 2.2, intro) + (1-weight) * travel * model.userData.side, galleryX, g), lerp(lerp(pose[1], -.85, intro) + idle*.025, .1, g), lerp(-(1-weight)*2.0, 0, g));
@@ -242,12 +242,12 @@ export class ProductScene {
       }
     });
     const signature = [Math.floor(daylightTime*12), this.progress, g, this.drag, this.dragTilt, intro, this.lighting.warmth, this.lighting.shift, idle, this.pointer.sx*(1-g), this.pointer.sy*(1-g), ...this.models.map(m => m.userData.weight), innerWidth, innerHeight].map(v => Math.round(v*5000)).join(',');
-    if (signature !== this.lastRenderSignature && now-(this.lastProductFrame || 0) > (this.mobile?40:30)) {
+    if ((this.active || !this.ready) && signature !== this.lastRenderSignature && now-(this.lastProductFrame || 0) > (this.mobile?40:30)) {
       this.lastProductFrame=now; this.renderer.render(this.scene, this.camera); this.lastRenderSignature = signature; }
     // Read-only diagnostics support QA of the real GLB scene rather than screenshots alone.
     if (this.ready && now - (this.lastDiagnostic || 0) > 500) {
       this.lastDiagnostic = now;
-      this.canvas.dataset.scene = JSON.stringify({ selected: this.selected, progress: +this.progress.toFixed(3), gallery: +g.toFixed(3), models: this.models.length, triangles: this.renderer.info.render.triangles, solid: this.models.every(m=>m.userData.materials.every(mat=>!mat.transparent && mat.opacity===1 && mat.depthWrite)), rotation: +this.drag.toFixed(3), intro: +intro.toFixed(3), sunlight: !!this.sun.map, daylight: +daylightTime.toFixed(3) });
+      this.canvas.dataset.scene = JSON.stringify({ selected: this.selected, asset: this.models[this.selected]?.userData.assetId, meshes: this.models[this.selected]?.userData.meshNames, progress: +this.progress.toFixed(3), gallery: +g.toFixed(3), models: this.models.length, triangles: this.renderer.info.render.triangles, solid: this.models.every(m=>m.userData.materials.every(mat=>!mat.transparent && mat.opacity===1 && mat.depthWrite)), rotation: +this.drag.toFixed(3), intro: +intro.toFixed(3), sunlight: !!this.sun.map, daylight: +daylightTime.toFixed(3) });
     }
   }
   disposeObject(object) {
@@ -263,9 +263,9 @@ export class ProductScene {
     this.disposed = true; cancelAnimationFrame(this.frame);
     window.removeEventListener('resize', this.resize); window.removeEventListener('scroll', this.readScroll);
     window.removeEventListener('pointermove', this.move); window.removeEventListener('pointerup', this.pointerUp);
-    this.canvas.removeEventListener('pointerdown', this.pointerDown);this.canvas.removeEventListener('webglcontextlost', this.contextLost);
+    this.canvas.removeEventListener('pointercancel', this.pointerUp);this.canvas.removeEventListener('pointerdown', this.pointerDown);this.canvas.removeEventListener('webglcontextlost', this.contextLost);
     this.preference.removeEventListener('change', this.onPreference);
-    gsap.killTweensOf(this.gallery); gsap.killTweensOf(this.intro); gsap.killTweensOf(this.lighting); this.atmosphere?.dispose();
+    gsap.killTweensOf(this.gallery); gsap.killTweensOf(this.intro); gsap.killTweensOf(this.lighting);
     this.models.forEach(o => { gsap.killTweensOf(o.userData); this.disposeObject(o); this.disposeObject(o.userData.shadow); });
     this.sun.map.dispose(); this.sun.dispose(); this.environment.dispose(); this.renderer.dispose();
   }

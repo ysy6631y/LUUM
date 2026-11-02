@@ -1,56 +1,42 @@
-# 현재 방향 — BARRIER+ 기반 LUUM 쇼케이스
+# Current delivery override
 
-2026-11-03 사용자 수정 지시에 따라 Cartier 재현 중심에서 제품 중심의 미니멀 쇼케이스로 방향을 변경했다. 히어로의 제품 크기는 기존 값을 유지한다.
+The latest user instruction is to deliver the earlier minimal version with the water effect removed, cancel all newly added Glass cards/buttons, and preserve the product interaction plus the “손끝으로 읽는 다섯 가지 차이” collection. Implemented. Section backgrounds are opaque and the 3D canvas is contained inside its product section to prevent cross-section bleed. No new opening reference was applied after this override.
 
-확인한 1차 자료: https://ngplus.studio/works/barrier-plus . 제작사는 하나의 고정 3D 캔버스에서 제품 회전·크기·위치가 스크롤에 대응하는 구조를 설명한다. LUUM에는 이 제품 중심 흐름을 적용하되 긴 설명은 제외했다. 다른 브랜드 모델·타이포·이미지는 사용하지 않았다.
+The supplied [Oimo Drops](https://oimo.io/works/drops/) demo was opened in Chromium, visually inspected, and dragged. It presents deforming refractive fluid with adjustable surface tension, gravity and caustics. A future isolated interlude is technically feasible, but it is deliberately not inserted into the requested water-free version. No demo code/environment imagery copied. Its linked repository was identified as https://github.com/saharan/works/tree/main/drops; license must be checked before source reuse.
 
-- 실제 원본 5개 GLB, 커스텀 폰트, 스톤·금색 재질 유지
-- 실제 제품 디테일 뒤로 흐리는 빛의 베일 + LUUM 글자 순차 등장 + 실제 로딩 진행률
-- 과한 장식 없이 저속 물결광, 천의 그림자, 이동하는 부드러운 빛을 셰이더로 생성
-- 데스크톱 히어로의 크기는 변경하지 않고 작은 idle 동작만 추가
-- 제품의 각 면에 투명도를 주던 전환을 제거. 표면은 불투명하게 유지하고 공간 이동으로 전환
-- 패턴 / 상단 링 / 실제 음각 로고 / 5종 컬렉션으로 이어지는 5개 장면
-- 각 디테일 문장은 한 줄로 축소
-- 모바일 세부 디자인은 사용자 요청에 따라 마지막에 일괄 진행
-
-아래는 이전 Cartier 중심 구현 당시의 조사 기록이다.
+Studio Lumio's real opening was also inspected as an opening reference before the latest cancellation. No Lumio identity, code or media is used.
 
 ---
 
-# 레퍼런스 확인과 구현 — 2026-11-03 KST
+# LUUM art direction and source research — 2026-11-03
 
-## 실제 접근 결과
+Latest steering takes precedence: remove the oversized Glass panel and sequential full-screen text heroes. The seven exact brand sentences remain together in a compact editorial composition. Opening uses the original sheer fabric atmosphere and a restrained LUUM mark. Product hero size remains unchanged.
 
-- https://www.cartier.com/en-fr/lechoeurdespierres : HTTP 요청 및 실제 Chromium 탐색 모두 403 Access Denied. `qa/cartier-access.png`.
-- https://www.makemepulse.com/case-study/cartier-le-choeur-des-pierres : 본문과 공개 스크린샷 확인.
-- 케이스 스터디에 연결된 landing / journey / desktop scroll / mobile 영상 CDN은 현재 403. 기존 저장소의 과거 시연 영상 연구 메모는 참고 기록이며, 이번 세션에서 영상 재생을 검증했다고 주장하지 않는다.
-- 확인한 제작사 이미지: `d9lqg0iPhDVuXLKE_1-cover-image.png`, `spXTfrYrwQLVY6gd_4_cartier_full_desktop.jpg`, `Hcf5KEf9qUv63_o-_11_cartier_grid_4_desktop.jpg`, `A7EG-l5Fn_m2aHYt_12_grid.jpg` (images.prismic.io/makemepulse/).
-- 다운로드한 레퍼런스는 작업용 `/tmp/luum-reference`에만 보관. Cartier 로고·보석·이미지·영상은 앱과 배포에 사용하지 않는다.
+## Primary brand references actually inspected
 
-## 관찰한 것과 적용
+All three makemepulse case-study texts were opened and public images downloaded into `/tmp/luum-brand-reference` for visual contact-sheet comparison. Reference brand images, film, logos and code are not included in this application.
 
-| 확인된 원본 구성 | LUUM 구현 |
-| --- | --- |
-| 밝은 패브릭 위 중앙에 다섯 보석을 가로로 배치 | 실제 5개 GLB를 가로로 배치하는 컬렉션 화면 |
-| 작은 상단 중앙 로고, 모서리 제어, 작은 닫기 버튼 | 중앙 LUUM, 좌측 컬렉션, 컬렉션 닫기 |
-| 단일 제품이 화면의 중심을 차지하고 이름/스크롤 안내를 중앙 하단 표시 | 큰 실제 오브제, 하단 커스텀 폰트 제품명, 작은 스크롤 안내 |
-| 선택한 보석에 따른 세계/배경 전환 | LUUM 원본 색상에 대응하는 스톤·브라운 배경과 조명 |
-| 디테일과 문장을 비대칭으로 배치하며 여백 유지 | 오른쪽 패턴 확대/왼쪽 설명, 왼쪽 링 확대/오른쪽 설명 |
-| 모바일 레퍼런스의 세로 이미지와 설명 흐름 | 제품·디테일을 위쪽, 본문을 아래쪽에 배치 |
-| 손그림을 드러내는 레이어 (제작사 본문) | 손그림 에셋이 없으므로 그림을 만들어내지 않음. 실제 제품의 금색 패턴/링을 확대 |
+- [Cartier — Le Chœur des Pierres](https://www.makemepulse.com/case-study/cartier-le-choeur-des-pierres): isolated objects in luminous space, extremely restrained interface, layered scenes and drawing/object transitions. Actual Cartier campaign URL still returns 403; no claims about unverified live camera timing. Apply object-first composition and coherent lighting, not gemstone/brand assets.
+- [Dior — Rouge Dior](https://www.makemepulse.com/case-study/christian-dior-parfums-rouge-dior): public frames show interleaved campaign media and a dominant 3D lipstick; device compositions retain focused product hierarchy. Apply a continuous optical atmosphere into the existing GLB canvas. Do not force mismatched old LUUM product video into this collection.
+- [La Prairie — The Pursuit of Harmony](https://www.makemepulse.com/case-study/la-prairie-the-pursuit-of-harmony): public screens show immersive spatial artwork/exhibition, light, stillness and physical forms. Apply spatial pattern/light language; do not copy blue architecture or assets.
 
-## 검증되지 않은 원본 동작
+Visual contact sheets inspected: `cartier-sheet.jpg`, `dior-sheet.jpg`, `prairie-sheet.jpg` under temporary research directory. These are reference-only, not distribution assets.
 
-원본의 정확한 로더 시퀀스, 카메라 좌표, 마우스 회전 범위, 스크롤 길이, easing, duration, 모바일 선택 제스처는 확인하지 못했다. 이 값들을 원본에서 추출했다고 주장하지 않는다.
+## Public WebGL implementation references
 
-아래는 요청된 LUUM 3D 탐색을 위한 구현 수치다.
+- [Three.js official physical transmission example](https://threejs.org/examples/webgl_materials_physical_transmission.html), [GitHub source](https://github.com/mrdoob/three.js/blob/dev/examples/webgl_materials_physical_transmission.html). Opened in Chromium and actual rendered result inspected (`transmission-live.png`). Shows refraction sampling the surrounding environment. Three.js is MIT. No external environment map or demo model reused; project keeps its existing RoomEnvironment and original model PBR materials.
+- [liquidglass repository](https://github.com/ybouane/liquidglass) inspected as an alternative. Its demo URL returned a host error; visual result could not be verified, so no library or code adopted.
 
-- 시야각 30°, 기본 카메라 z=10.5, 제품 원형 크기 비율 유지
-- 제품 교체: outgoing 0.65초, incoming 1.25초 / power2.inOut
-- 컬렉션 펼치기: 1.2초 / power3.inOut
-- 배경 전환: 1.4초 / power2.inOut
-- 스크롤 전체 길이: 430svh, 4개 연속 포즈, smoothstep 보간과 지수 감쇠
-- 본문 스크롤 레이어: GSAP ScrollTrigger scrub 0.7초
-- 시스템 reduced-motion 또는 모션 줄이기: 선택/보간 최소화, 드래그 수동 탐색 유지
+## User-supplied Codrops water collection
 
-최우선으로 지킨 것은 원본 LUUM 5종의 형태·패턴·색과, 레퍼런스의 여백·중심 오브제·절제된 인터페이스다. 직접 확인이 불가능한 동작까지 1:1 재현되었다고 보장하지 않는다.
+[Codrops water tag](https://tympanus.net/codrops/hub/tag/water/) opened; followed actual demo links.
+
+- [Clearwater](https://aureliengmz.github.io/clearwater/): successfully rendered in Chromium. Screenshot inspected: small moving surface waves focus sunlight into connected caustic filaments. Useful principle: light concentration and soft distortion. No water scene, textures or source code copied. Ocean palette/specular glare are unsuitable for LUUM's neutral product background.
+- [Lightweight Water Distortion](https://codepen.io/ksenia-k/full/RwXVMMY): Cloudflare human-check blocked the actual demo. Not treated as visually verified.
+- [Heat Distortion / Water](https://tympanus.net/Tutorials/HeatDistortionEffect/index4.html): human-check blocked browser rendering. Not treated as visually verified.
+
+The earlier experimental atmospheric shader has now been removed. The projected product light mask is original LUUM code. No new external VFX assets or unverified licenses are introduced.
+
+## Original LUUM assets
+
+See `ASSET_REVIEW.md` for the original GlassCard, Illustrator guide, leaflet, video, font coverage and correct GLB category/pattern mapping. User's latest mapping overrides older source leaflet metadata. Original files remain unchanged.
