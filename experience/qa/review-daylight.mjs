@@ -1,0 +1,10 @@
+import{chromium}from'@playwright/test';import{homedir}from'node:os';
+const browser=await chromium.launch({headless:true,executablePath:`${homedir()}/Library/Caches/ms-playwright/chromium-1161/chrome-mac/Chromium.app/Contents/MacOS/Chromium`});
+const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});const errors=[];
+page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'컬렉션 감상하기'}).click({timeout:120000});await page.locator('.opening').waitFor({state:'hidden'});await page.waitForFunction(()=>JSON.parse(document.querySelector('.product-canvas').dataset.scene).intro===0);
+await page.mouse.move(720,400);await page.waitForTimeout(600);await page.screenshot({path:'qa/daylight-hero.png'});await page.waitForTimeout(4500);await page.screenshot({path:'qa/daylight-hero-later.png'});
+await page.getByRole('button',{name:'UMBER 엄버 보기'}).click();await page.waitForTimeout(1600);await page.screenshot({path:'qa/daylight-umber.png'});
+await page.getByRole('button',{name:'컬렉션',exact:true}).click();await page.waitForFunction(()=>JSON.parse(document.querySelector('.product-canvas').dataset.scene).gallery>.999);await page.waitForTimeout(500);await page.screenshot({path:'qa/daylight-collection.png'});
+await page.setViewportSize({width:1920,height:1080});await page.waitForTimeout(900);await page.screenshot({path:'qa/daylight-collection-wide.png'});
+console.log(JSON.stringify({errors,scene:JSON.parse(await page.locator('.product-canvas').getAttribute('data-scene')),labels:await page.locator('.gallery-labels').boundingBox()}));await browser.close();

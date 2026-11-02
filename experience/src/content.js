@@ -11,5 +11,6 @@ export const chapters = [
   { title: 'The object', label: '오브제' },
   { title: 'The golden geometry', label: '금빛 패턴' },
   { title: 'The finishing touch', label: '디테일' },
-  { title: 'The quiet ritual', label: '리추얼' },
+  { title: 'The signature', label: '시그니처' },
+  { title: 'The collection', label: '컬렉션 피날레' },
 ];
