@@ -1,0 +1,57 @@
+[
+  {
+    "asset": "01",
+    "source": "LUUM_TEXTURE.blend",
+    "dimensionsMetres": {
+      "x": 0.064411461353302,
+      "y": 0.06441149115562439,
+      "z": 0.19000003487485628
+    },
+    "floorZ": 9.909210803016322e-07,
+    "bodyHeightMetres": 0.1900000125169754
+  },
+  {
+    "asset": "02",
+    "source": "LUUM_TEXTURE.blend",
+    "dimensionsMetres": {
+      "x": 0.06441143155097961,
+      "y": 0.06441149115562439,
+      "z": 0.19000003487485628
+    },
+    "floorZ": 9.909210803016322e-07,
+    "bodyHeightMetres": 0.1900000125169754
+  },
+  {
+    "asset": "03",
+    "source": "LUUM_TEXTURE.blend",
+    "dimensionsMetres": {
+      "x": 0.0645543783903122,
+      "y": 0.06455442309379578,
+      "z": 0.19000003489497885
+    },
+    "floorZ": 9.909009577313554e-07,
+    "bodyHeightMetres": 0.1900000125169754
+  },
+  {
+    "asset": "04",
+    "source": "LUUM_TEXTURE.blend",
+    "dimensionsMetres": {
+      "x": 0.06455264985561371,
+      "y": 0.06454731523990631,
+      "z": 0.19000003489406936
+    },
+    "floorZ": 9.909018672260572e-07,
+    "bodyHeightMetres": 0.1900000125169754
+  },
+  {
+    "asset": "05",
+    "source": "LUUM_TEXTURE.blend",
+    "dimensionsMetres": {
+      "x": 0.08000000193715096,
+      "y": 0.08000002801418304,
+      "z": 0.07780002957872512
+    },
+    "floorZ": 8.478135669065523e-07,
+    "bodyHeightMetres": 0.07779999822378159
+  }
+]

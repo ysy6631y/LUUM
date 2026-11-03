@@ -37,3 +37,10 @@ Collection diagrams are explanatory vectors traced in code to match the verified
 ## Font
 
 Existing LUUM font preserves original bytes. It covers Basic Latin letters and digits, not Hangul. Brand wordmarks, Latin headings, product names and Latin parts of story/ending use LUUM. Korean falls back to supplied Pretendard. No synthetic stretching or remodelling.
+
+
+## Current opening film and restored product composition
+
+Found and visually inspected the actual earlier website opening `/Users/pc/Desktop/LUUM_WEB/references/assets/luum-openinig.mp4`: 6 seconds, 1920×1080, silent translucent fabric with no product labels or logo. This is distinct from the unused 8-second product reveal above. Source is preserved. Derived 1280×720 MP4 and WebM are served from `public/brand/luum-opening-720.*`; poster is extracted from the original first frame. No third-party footage is used. Initial screen shows the film, one small header wordmark and an English scroll cue. A single rounded translucent surface and Latin LUUM-font phrase appear only after scrolling. No large opening/ending LUUM logo repetition, visible Korean opening copy, header side links or tactile-experience footer label.
+
+The product layout, palette, lights and camera return to deployed commit `bd27ef0`. Kept the subtle high-contrast cursor and original-size correction: tall vessels are 0.1900m high, BODY LOTION 0.0778m (40.95%). Read-only Blender measurements are in `model-dimensions.json`. Original metre scale is shared by every GLB; per-jar enlargement is removed, and native lower bounds determine hero/lineup grounding. Fallback posters compensate the original .26/.135 orthographic camera scales. No source BLEND, font, GLB or product texture is modified.
