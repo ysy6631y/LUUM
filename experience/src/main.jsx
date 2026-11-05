@@ -54,8 +54,7 @@ function App(){
     const ctx=gsap.context(self=>{
         ScrollTrigger.create({trigger:'#exhibition-opening',start:'top top',end:'bottom top',onToggle:s=>{app.current.dataset.exhibitionViewing=s.isActive?'true':'false';}});
         const opening=gsap.timeline({scrollTrigger:{trigger:'#opening',start:'top top',end:'bottom bottom',scrub:true}});
-        opening.fromTo('.opening-frost',{'--frost-edge':'120%'},{'--frost-edge':'-20%',ease:'none',duration:1},0)
-          .to('.opening-scroll',{autoAlpha:0,duration:.25},.65);
+        opening.fromTo('.opening-frost',{'--frost-edge':'120%'},{'--frost-edge':'-20%',ease:'none',duration:1},0);
         ScrollTrigger.create({trigger:'.intro-journey',start:'top top',end:'bottom top',onToggle:s=>{app.current.dataset.introViewing=s.isActive?'true':'false';}});
         const story=gsap.timeline({scrollTrigger:{trigger:'#brand-story',start:'top 25%',end:'bottom bottom',scrub:true}});
         self.add('updateStory',()=>{
@@ -118,7 +117,6 @@ function App(){
         <section id="opening" aria-label="LUUM 시네마틱 오프닝">
           <div className="opening-frame"><div className="opening-frost" aria-hidden="true"/>
             <h1 className="sr-only" id="opening-title" tabIndex={-1}>LUUM</h1>
-            <button className="opening-scroll" onClick={()=>navigate('brand-story')}>Scroll to reveal<span aria-hidden="true">↓</span></button>
           </div>
         </section>
         <section id="brand-story" className="brand-editorial" aria-label="LUUM 브랜드 스토리">
