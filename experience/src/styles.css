@@ -209,3 +209,10 @@
 .exhibition-scroll{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font-size:10px;color:#5e554c;letter-spacing:.08em}
 .exhibition-scroll svg{width:18px;height:32px;stroke-width:.8;fill:none;stroke:currentColor}
 .experience[data-exhibition-viewing=true] .site-header:before{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* Dark ink and a light outer edge keep the pointer visible over film and products. */
+.object-cursor{color:#514638}
+.cursor-ring{width:34px;height:34px;left:-17px;top:-17px;border:1.5px solid currentColor;opacity:1;background:rgba(255,253,247,.12);box-shadow:0 0 0 1px rgba(255,253,247,.9),0 1px 5px #241d1630}
+.cursor-dot{width:5px;height:5px;left:-2.5px;top:-2.5px;background:#514638;box-shadow:0 0 0 1.25px #fffdf7}
+.object-cursor[data-mode=link] .cursor-ring{opacity:1}
+.object-cursor[data-mode=wipe] .cursor-ring{opacity:.85}
