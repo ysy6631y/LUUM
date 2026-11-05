@@ -10,6 +10,10 @@ export function OpeningFilm({ enabled, productFilm = false }) {
 
   useEffect(() => {
     const video = ref.current;
+    // Safari requires the media to be explicitly muted before autoplay.
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
     video.playbackRate = productFilm ? 1 : .3;
     video.defaultPlaybackRate = productFilm ? 1 : .3;
     let visible = false;
@@ -23,12 +27,16 @@ export function OpeningFilm({ enabled, productFilm = false }) {
       sync();
     }, { threshold: .05 });
     observer.observe(video);
+    video.addEventListener('canplay', sync);
+    video.addEventListener('loadeddata', sync);
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const reduce = () => { if (motion.matches) setPaused(true); };
     motion.addEventListener('change', reduce);
     document.addEventListener('visibilitychange', sync);
     return () => {
       observer.disconnect();
+      video.removeEventListener('canplay', sync);
+      video.removeEventListener('loadeddata', sync);
       video.pause();
       motion.removeEventListener('change', reduce);
       document.removeEventListener('visibilitychange', sync);
