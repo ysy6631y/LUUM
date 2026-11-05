@@ -13,14 +13,13 @@ import { productJourney, chapterLocal, journeyPosition, cameraChapter } from './
 import './styles.css';
 gsap.registerPlugin(ScrollTrigger);
 const prefersReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const headerItems=[['Home','opening'],['Ritual','brand-story'],['Texture','collection'],['Product','showcase'],['Contact','ending']];
-const introKey='luum-entry-room-v1';
-const seenIntro=()=>{try{return !new URLSearchParams(location.search).has('intro')&&sessionStorage.getItem(introKey)==='true';}catch{return false;}};
+const headerItems=[['Home','exhibition-opening'],['Ritual','brand-story'],['Texture','collection'],['Product','showcase'],['Contact','ending']];
 
 function App(){
-  const app=useRef(null),canvas=useRef(null),controller=useRef(null),selectRef=useRef(null),gateEntering=useRef(false);
+  const app=useRef(null),canvas=useRef(null),controller=useRef(null),selectRef=useRef(null);
   const [selected,setSelected]=useState(0),[progress,setProgress]=useState(0),[ready,setReady]=useState(false),[fallback,setFallback]=useState(false);
-  const [loading,setLoading]=useState(()=>!seenIntro()),[chapter,setChapter]=useState(0),[entering,setEntering]=useState(false);
+  const loading=false;
+  const [chapter,setChapter]=useState(0);
   const product=products[selected];
   const navigate=(id)=>document.getElementById(id)?.scrollIntoView({behavior:prefersReduced()?'instant':'smooth'});
   const jump=(chapter,index=selected)=>{const el=document.getElementById('showcase');const position=chapter===4?1:journeyPosition(index,chapterLocal[chapter]);window.scrollTo({top:el.offsetTop+(el.offsetHeight-innerHeight)*position,behavior:'instant'});};
@@ -48,30 +47,6 @@ function App(){
     }).catch(fail);
     return()=>{disposed=true;controller.current?.dispose();};
   },[]);
-  const enterRoom=()=>{
-    if(!ready||gateEntering.current)return;
-    gateEntering.current=true;setEntering(true);
-    gsap.to('.preloader',{autoAlpha:0,duration:prefersReduced()?.01:.8,ease:'sine.inOut',onComplete:()=>{try{sessionStorage.setItem('luum-loaded','true');sessionStorage.setItem(introKey,'true');const url=new URL(location.href);url.searchParams.delete('intro');history.replaceState(null,'',url);}catch{}setLoading(false);}});
-  };
-  useEffect(()=>{
-    document.body.classList.toggle('locked',loading);
-    if(loading)window.scrollTo({top:0,behavior:'instant'});
-    const frame=!loading&&gateEntering.current?requestAnimationFrame(()=>document.getElementById('opening-title')?.focus({preventScroll:true})):0;
-    return()=>{cancelAnimationFrame(frame);document.body.classList.remove('locked');};
-  },[loading]);
-  useEffect(()=>{if(!seenIntro()){gateEntering.current=false;setEntering(false);setLoading(true);}},[]);
-  useEffect(()=>{
-    if(!loading)return;
-    const ctx=gsap.context(()=>{
-      if(prefersReduced()){gsap.set('.gate-enter',{autoAlpha:1});gsap.set('.gate-copy p',{autoAlpha:1});return;}
-      gsap.timeline().fromTo('.gate-copy p:first-child',{autoAlpha:0,y:-6},{autoAlpha:1,y:0,duration:.85,ease:'sine.out'},.9)
-        .fromTo('.gate-copy p:last-child',{autoAlpha:0,y:-6},{autoAlpha:1,y:0,duration:.85,ease:'sine.out'},1.45)
-        .to('.gate-copy',{autoAlpha:0,duration:1.1},4.05)
-        .fromTo('.gate-enter',{autoAlpha:0,y:3},{autoAlpha:1,y:0,duration:.7},5.65);
-    },app);
-    return()=>ctx.revert();
-  },[loading]);
-
   useEffect(()=>{
     if(loading)return;
     const preference=matchMedia('(prefers-reduced-motion: reduce)');
@@ -122,27 +97,27 @@ function App(){
   return <div ref={app} className={`experience ${fallback?'is-fallback':''}`} data-entry={loading?'true':'false'} data-chapter={chapter} data-viewing="false" data-intro-viewing="true" style={{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk}}>
     <Cursor/>
     <a className="skip-link" href="#showcase" tabIndex={loading?-1:0}>제품 탐색으로 건너뛰기</a>
-    {loading&&<div className="preloader entry-gate" role="dialog" aria-modal="true" aria-label="LUUM opening">
-      <div className="gate-copy brand"><p>A small light opens the room.</p><p>Begin your routine with LUUM.</p></div>
-      <button className="gate-enter brand glass-control" onClick={enterRoom} disabled={!ready||entering}>ENTER THE ROOM</button>
-      {!ready&&<div className="gate-progress" role="status" aria-label="LUUM 필수 에셋 로딩"><div className="loading-line"><i style={{transform:`scaleX(${progress/100})`}}/></div><span className="loading-count">{String(progress).padStart(2,'0')}</span><span className="sr-only">{progress}% 로딩</span></div>}
-    </div>}
-
     <div className="journey" inert={loading?true:undefined}>
       <header className="site-header">
-        <a className="wordmark brand" href="#opening" aria-label="LUUM 처음으로" onClick={e=>{e.preventDefault();navigate('opening');}}>LUUM</a>
+        <a className="wordmark brand" href="#exhibition-opening" aria-label="LUUM 처음으로" onClick={e=>{e.preventDefault();navigate('exhibition-opening');}}>LUUM</a>
         <nav className="header-nav" aria-label="Primary navigation">{headerItems.map(([name,id])=><a key={name} href={`#${id}`} onClick={e=>{e.preventDefault();id==='showcase'?choose(0):navigate(id);}}>{name}</a>)}</nav>
         <div className="header-right"><span className="header-login" aria-disabled="true">Login</span><details className="header-menu"><summary aria-label="메뉴 열기"><span/><span/></summary><nav aria-label="전체 메뉴">{headerItems.map(([name,id])=><a key={name} href={`#${id}`} onClick={e=>{e.preventDefault();e.currentTarget.closest('details').open=false;id==='showcase'?choose(0):navigate(id);}}>{name}</a>)}</nav></details></div>
       </header>
 
       <main>
+        <section id="exhibition-opening" className="exhibition-opening" aria-label="LUUM 제품 영상 오프닝">
+          <OpeningFilm enabled={true} productFilm/>
+          <button className="exhibition-scroll" onClick={()=>navigate('brand-story')}>
+            Scroll to explore <span aria-hidden="true">↓</span>
+          </button>
+        </section>
         <div className="intro-journey">
           <div className="intro-atmosphere"><OpeningFilm enabled={true}/></div>
         <div className="intro-content">
         <section id="opening" aria-label="LUUM 시네마틱 오프닝">
           <div className="opening-frame"><div className="opening-frost" aria-hidden="true"/>
             <h1 className="sr-only" id="opening-title" tabIndex={-1}>LUUM</h1>
-            <button className="opening-scroll" onClick={()=>navigate('brand-story')}>Scroll to reveal<span className="scroll-thread" aria-hidden="true"/></button>
+            <button className="opening-scroll" onClick={()=>navigate('brand-story')}>Scroll to reveal<span aria-hidden="true">↓</span></button>
           </div>
         </section>
         <section id="brand-story" className="brand-editorial" aria-label="LUUM 브랜드 스토리">
@@ -173,7 +148,7 @@ function App(){
         <PatternAtelier onInspect={inspect}/>
         <footer className="ending" id="ending"><div className="footer-pattern" aria-hidden="true"><Pattern type="diamond"/></div>
           <div className="footer-directory">
-            <div className="footer-about"><h3 className="brand">LUUM</h3><p>Certainty, beyond sight.</p><a href="#opening" onClick={e=>{e.preventDefault();navigate('opening');}} className="back-to-top glass-control">Back to the beginning ↑</a></div>
+            <div className="footer-about"><h3 className="brand">LUUM</h3><p>Certainty, beyond sight.</p><a href="#exhibition-opening" onClick={e=>{e.preventDefault();navigate('exhibition-opening');}} className="back-to-top glass-control">Back to the beginning ↑</a></div>
             <nav aria-label="푸터 컬렉션"><h3>Collection</h3>{products.map((p,i)=><a key={p.id} href="#showcase" onClick={e=>{e.preventDefault();choose(i);}}>{p.name}</a>)}</nav>
             <nav aria-label="브랜드 링크"><h3>Connect</h3><a href="https://ysy6631y.github.io/LUUM/" target="_blank" rel="noreferrer">Brand website ↗</a><a href="https://www.instagram.com/luum/" target="_blank" rel="noreferrer">Instagram @luum ↗</a></nav>
           </div>

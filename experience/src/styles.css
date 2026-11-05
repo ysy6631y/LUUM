@@ -203,3 +203,8 @@
  .footer-about h3{font-size:29px;margin-bottom:16px}.footer-about .back-to-top{margin-top:20px}
  .footer-bottom{margin-top:32px;padding-top:18px}
 }
+
+.exhibition-opening{position:relative;height:100svh;background:#f7f3ed;pointer-events:auto}
+.exhibition-opening .opening-video{object-fit:contain}
+.exhibition-scroll{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:16px;font-size:10px;color:#5e554c;letter-spacing:.08em}
+.exhibition-scroll span{font-size:25px;line-height:1}

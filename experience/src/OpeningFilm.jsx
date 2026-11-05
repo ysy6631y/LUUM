@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { asset } from './content';
 
-export function OpeningFilm({ enabled }) {
+export function OpeningFilm({ enabled, productFilm = false }) {
   const ref = useRef(null);
   const [paused, setPaused] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [playing, setPlaying] = useState(false);
@@ -10,8 +10,8 @@ export function OpeningFilm({ enabled }) {
 
   useEffect(() => {
     const video = ref.current;
-    video.playbackRate = .3;
-    video.defaultPlaybackRate = .3;
+    video.playbackRate = productFilm ? 1 : .3;
+    video.defaultPlaybackRate = productFilm ? 1 : .3;
     let visible = false;
     const sync = () => {
       if (enabled && visible && !document.hidden && !paused && !failed) {
@@ -33,7 +33,7 @@ export function OpeningFilm({ enabled }) {
       motion.removeEventListener('change', reduce);
       document.removeEventListener('visibilitychange', sync);
     };
-  }, [enabled, paused, failed]);
+  }, [enabled, paused, failed, productFilm]);
 
   const toggle = () => {
     const video = ref.current;
@@ -48,11 +48,13 @@ export function OpeningFilm({ enabled }) {
 
   return <>
     <video key="luum-film-720" ref={ref} className="opening-video" autoPlay={enabled && !paused}
-      poster={asset('brand/luum-opening-poster.jpg')} preload="auto" muted loop playsInline
-      aria-label="LUUM의 반투명 패브릭이 부드럽게 움직이는 오프닝 영상"
+      poster={productFilm ? undefined : asset('brand/luum-opening-poster.jpg')} preload="auto" muted loop playsInline
+      aria-label={productFilm ? 'LUUM 제품이 등장하는 반복 재생 영상' : 'LUUM의 반투명 패브릭이 부드럽게 움직이는 오프닝 영상'}
       onLoadedData={() => setFailed(false)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setFailed(true)}>
-      <source src={asset('brand/luum-opening-720.mp4')} type="video/mp4" />
-      <source src={asset('brand/luum-opening-720.webm')} type="video/webm" />
+      {productFilm ? <source src={asset('brand/luum-product-reveal.mp4')} type="video/mp4" /> : <>
+        <source src={asset('brand/luum-opening-720.mp4')} type="video/mp4" />
+        <source src={asset('brand/luum-opening-720.webm')} type="video/webm" />
+      </>}
     </video>
     {!failed && <button className="film-toggle glass-control" onClick={toggle} aria-label={playing ? '오프닝 영상 일시정지' : '오프닝 영상 재생'}>
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
