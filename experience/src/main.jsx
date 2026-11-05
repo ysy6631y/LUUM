@@ -93,6 +93,7 @@ function App(){
     return()=>{preference.removeEventListener('change',updateStory);ctx.revert();};
   },[loading]);
 
+  const nextProductStep=()=>{if(chapter<3)jump(chapter+1);else if(selected<4)choose(selected+1);else jump(4);};
   const inspect=(index)=>{applyProduct(index);jump(1,index);};
   return <div ref={app} className={`experience ${fallback?'is-fallback':''}`} data-exhibition-viewing="true" data-entry={loading?'true':'false'} data-chapter={chapter} data-viewing="false" data-intro-viewing="true" style={{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk}}>
     <Cursor/>
@@ -139,6 +140,11 @@ function App(){
             <section className="product-copy ring-copy"><span className="eyebrow">02 / The finishing touch</span><h2 className="brand">A TRACE<br/>OF GOLD</h2><p>손끝에 남는, 한 줄의 빛.</p></section>
             <section className="product-copy signature-copy"><span className="eyebrow">03 / The signature</span><h2 className="brand">A QUIET<br/>SIGNATURE</h2><p>형태에 새겨진 이름.</p></section>
             <section className="product-copy lineup-copy"><h2 className="brand">FIVE FORMS. ONE LUUM.</h2><button onClick={()=>navigate('collection')} className="detail-action glass-control">다섯 가지 패턴 살펴보기 <span>↓</span></button></section>
+            <div className="product-guidance">
+              <span>{product.number} / 05 · {product.ko}</span>
+              <p>{chapter===4?'제품을 선택해 다시 살펴보세요.':'드래그하여 회전 · 아래로 스크롤하여 디테일 보기'}</p>
+            </div>
+            {chapter<4&&<button className="product-next glass-control" onClick={nextProductStep}>{chapter<3?`다음: ${chapters[chapter+1].label}`:selected<4?`다음 제품: ${products[selected+1].ko}`:'다섯 제품 함께 보기'} <span aria-hidden="true">↓</span></button>}
             <aside className="chapter-rail" aria-label="제품 장면 탐색">{chapters.map((c,i)=><button key={c.title} onClick={()=>jump(i)} className={chapter===i?'active':''} aria-label={c.label} aria-current={chapter===i?'step':undefined}><span>{c.label}</span><i/></button>)}</aside>
             <nav className="product-selector" aria-label="제품 선택">{products.map((p,i)=><button key={p.id} onClick={()=>choose(i)} disabled={!ready} aria-label={`${p.name} ${p.ko} 보기`} aria-pressed={selected===i} className={`glass-control ${selected===i?'selected':''}`}><img src={asset(`models/luum-${p.id}.png`)} alt=""/><span>{p.name}</span><i/></button>)}</nav>
             <span className="sr-only" aria-live="polite">{product.name} {product.ko} {product.scentKo}</span>

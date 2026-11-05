@@ -5,7 +5,7 @@ import {CondensationSurface} from './condensation';
 
 function PatternScene({product,active,mark,onInspect,onReveal,onReset,onWipe}){
   return <div className={`atelier-scene ${active?'is-active':''}`} aria-hidden={!active}>
-    <div className="atelier-paper"><Pattern type={product.patternKey}/><div className="wipe-input" aria-hidden="true" onPointerDown={onWipe}/><span className="drawing-hint">안내선을 따라, 손끝으로 선을 따라가 보세요.</span></div>
+    <div className="atelier-paper"><Pattern type={product.patternKey}/><div className="wipe-input" aria-hidden="true" onPointerDown={onWipe}/><span className="drawing-hint">{mark.revealed?'패턴이 선명해졌습니다.':mark.count?'그린 부분의 패턴이 진해집니다. 계속 따라 그려보세요.':'누른 채 안내선을 따라 그려보세요.'}</span></div>
     <div className="atelier-caption">
       <span className="atelier-count">{product.number} <i/> 05</span><h3 className="brand">{product.name}</h3><p className="atelier-pattern-name">{product.patternName}</p>
       <p className="atelier-description">{product.description}</p><p className="atelier-scent">{product.scentKo}<span>{product.scent}</span></p>

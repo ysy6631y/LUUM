@@ -36,7 +36,7 @@ export class CondensationSurface {
   prepare(){
     const {width:w,height:h,dpr}=this;if(!w)return;
     const sharp=this.background.getContext('2d');sharp.clearRect(0,0,w,h);sharp.fillStyle='#8a9384';sharp.fillRect(0,0,w,h);
-    if(this.image){const image=this.image,scale=Math.max(w/image.width,h/image.height),iw=image.width*scale,ih=image.height*scale;sharp.drawImage(image,(w-iw)/2,(h-ih)/2,iw,ih);sharp.globalCompositeOperation='multiply';sharp.fillStyle='#8a9285';sharp.fillRect(0,0,w,h);sharp.globalCompositeOperation='source-over';}
+    if(this.image){const image=this.image,scale=Math.max(w/image.width,h/image.height),iw=image.width*scale,ih=image.height*scale;sharp.save();sharp.globalAlpha=.04;sharp.drawImage(image,(w-iw)/2,(h-ih)/2,iw,ih);sharp.restore();sharp.globalCompositeOperation='multiply';sharp.fillStyle='#8a9285';sharp.fillRect(0,0,w,h);sharp.globalCompositeOperation='source-over';}
     // Grade the user's own sheer image as warm natural light behind wet glass.
     const light=sharp.createLinearGradient(0,0,w*.1,h);light.addColorStop(0,'#f4f7edcf');light.addColorStop(.42,'#c9d0c01f');light.addColorStop(1,'#17291d94');sharp.fillStyle=light;sharp.fillRect(0,0,w,h);
     const fog=this.fog=document.createElement('canvas');fog.width=this.canvas.width;fog.height=this.canvas.height;const c=fog.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);

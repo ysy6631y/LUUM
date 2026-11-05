@@ -216,3 +216,21 @@
 .cursor-dot{width:5px;height:5px;left:-2.5px;top:-2.5px;background:#514638;box-shadow:0 0 0 1.25px #fffdf7}
 .object-cursor[data-mode=link] .cursor-ring{opacity:1}
 .object-cursor[data-mode=wipe] .cursor-ring{opacity:.85}
+
+/* Keep the object, current stage and next action legible throughout the journey. */
+.product-guidance{position:absolute;left:7%;top:14%;z-index:2;color:var(--ink);pointer-events:none}
+.product-guidance>span{font-family:Pretendard,sans-serif;font-size:12px;letter-spacing:.02em}
+.product-guidance p{margin-top:10px;font-family:Pretendard,sans-serif;font-size:11px;opacity:.8}
+.chapter-rail span{position:static;font-family:Pretendard,sans-serif;font-size:11px;opacity:.55}
+.chapter-rail button{justify-content:flex-end;gap:16px;padding:10px 8px}
+.chapter-rail .active span{opacity:1;font-weight:500}
+.chapter-rail .active i{height:22px;opacity:1}
+.product-next{position:absolute;right:7%;bottom:8%;z-index:3;padding:12px 17px;font-family:Pretendard,sans-serif;font-size:11px;display:flex;gap:18px;align-items:center}
+.product-next span{font-size:18px;font-weight:400}
+.drawing-hint{font-size:11px;color:#35432f;opacity:1;line-height:1.7;bottom:-42px}
+@media(max-width:699px){
+ .product-guidance{left:8%;top:12%}.product-guidance>span{font-size:10px}.product-guidance p{font-size:9px;max-width:200px;line-height:1.7}
+ .chapter-rail span{font-size:9px}.chapter-rail .active span{display:block}.chapter-rail button{gap:9px;padding:8px 4px}
+ .product-next{right:6%;bottom:112px;font-size:9px;padding:8px 12px;gap:10px}
+ .drawing-hint{font-size:9px;bottom:-40px}
+}
