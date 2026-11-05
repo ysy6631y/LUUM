@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test';
+
+test('exhibition returns after 60 idle seconds, cancels on input and restarts paused film',async({page})=>{
+  test.setTimeout(60000);
+  await page.clock.install();
+  await page.goto('/');
+  const film=page.locator('#exhibition-opening video');
+  await expect.poll(()=>film.evaluate(video=>video.paused)).toBe(false);
+  await page.locator('#exhibition-opening .film-toggle').click();
+  await expect.poll(()=>film.evaluate(video=>video.paused)).toBe(true);
+  await page.evaluate(()=>{const e=document.getElementById('collection');scrollTo(0,e.getBoundingClientRect().top+scrollY+100);});
+  const reveal=page.locator('.atelier-scene.is-active .drawing-actions button').first();
+  await reveal.click();await expect(reveal).toHaveAttribute('aria-pressed','true');
+  await page.clock.fastForward(55_000);
+  await expect(page.locator('.exhibition-idle-notice')).toContainText('5초 후');
+  await page.mouse.move(20,200);
+  await expect(page.locator('.exhibition-idle-notice')).toHaveCount(0);
+  await page.clock.fastForward(59_000);
+  await expect(page.locator('.exhibition-idle-notice')).toContainText('1초 후');
+  await page.keyboard.press('Shift');
+  await expect(page.locator('.exhibition-idle-notice')).toHaveCount(0);
+  await page.mouse.down();await page.clock.fastForward(65_000);
+  expect(await page.evaluate(()=>scrollY)).toBeGreaterThan(0);
+  await page.mouse.up();await page.clock.fastForward(60_000);
+  await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);
+  await expect(page.locator('.exhibition-idle-notice')).toHaveCount(0);
+  await expect.poll(()=>film.evaluate(video=>video.paused)).toBe(false);
+  await page.locator('#exhibition-opening .film-toggle').click();
+  await expect.poll(()=>film.evaluate(video=>video.paused)).toBe(true);
+  await page.clock.fastForward(60_000);
+  await expect.poll(()=>film.evaluate(video=>video.paused)).toBe(false);
+  await page.evaluate(()=>{const e=document.getElementById('collection');scrollTo(0,e.getBoundingClientRect().top+scrollY+100);});
+  await expect(reveal).toHaveAttribute('aria-pressed','false');
+});

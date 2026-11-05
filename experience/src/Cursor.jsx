@@ -28,9 +28,10 @@ export function Cursor() {
     };
     frame=requestAnimationFrame(draw);
     window.addEventListener('pointermove',move,{passive:true});
+    window.addEventListener('luum:idle-return',hide);
     window.addEventListener('pointerdown',press);window.addEventListener('pointerup',release);
     document.addEventListener('pointerleave',hide);window.addEventListener('blur',hide);media.addEventListener('change',hide);
-    return()=>{cancelAnimationFrame(frame);window.removeEventListener('pointermove',move);window.removeEventListener('pointerdown',press);window.removeEventListener('pointerup',release);document.removeEventListener('pointerleave',hide);window.removeEventListener('blur',hide);media.removeEventListener('change',hide);document.documentElement.classList.remove('custom-cursor');};
+    return()=>{window.removeEventListener('luum:idle-return',hide);cancelAnimationFrame(frame);window.removeEventListener('pointermove',move);window.removeEventListener('pointerdown',press);window.removeEventListener('pointerup',release);document.removeEventListener('pointerleave',hide);window.removeEventListener('blur',hide);media.removeEventListener('change',hide);document.documentElement.classList.remove('custom-cursor');};
   },[]);
   return <div className="object-cursor" ref={ref} aria-hidden="true"><span className="cursor-ring"/><span className="cursor-dot"/></div>;
 }

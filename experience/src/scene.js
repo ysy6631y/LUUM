@@ -185,6 +185,19 @@ export class ProductScene {
       gsap.to(model.userData, { weight: i === index ? 1 : 0, duration: this.reduced ? .01 : 1.7, ease: 'sine.inOut' });
     }
   }
+  resetForExhibition() {
+    this.select(0,{scrollDriven:true});
+    this.down=false;
+    this.drag=this.dragTarget=this.dragTilt=this.dragTiltTarget=0;
+    this.progress=this.scroll=0;this.gallery.value=0;
+    this.stage=productJourney(0);this.targetJourney=this.stage;
+    for(let i=0;i<this.models.length;i++){
+      const model=this.models[i];if(!model)continue;
+      gsap.killTweensOf(model.userData);
+      model.userData.weight=i===0?1:0;
+      model.userData.outgoing=null;model.userData.side=0;
+    }
+  }
   setGallery(open) {
     gsap.to(this.gallery, { value: open ? 1 : 0, duration: this.reduced ? .01 : 1.2, ease: 'power3.inOut', overwrite: true });
     this.canvas.style.cursor = open ? 'pointer' : 'grab';

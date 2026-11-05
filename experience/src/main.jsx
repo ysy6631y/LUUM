@@ -9,6 +9,7 @@ import { Cursor } from './Cursor';
 import { Pattern } from './Pattern';
 import { PatternAtelier } from './PatternAtelier';
 import { OpeningFilm } from './OpeningFilm';
+import { ExhibitionIdleReturn } from './ExhibitionIdleReturn';
 import { productJourney, chapterLocal, journeyPosition, cameraChapter } from './journey';
 import './styles.css';
 gsap.registerPlugin(ScrollTrigger);
@@ -20,6 +21,7 @@ function App(){
   const [selected,setSelected]=useState(0),[progress,setProgress]=useState(0),[ready,setReady]=useState(false),[fallback,setFallback]=useState(false);
   const loading=false;
   const [chapter,setChapter]=useState(0);
+  const [exhibitionVisit,setExhibitionVisit]=useState(0);
   const product=products[selected];
   const navigate=(id)=>document.getElementById(id)?.scrollIntoView({behavior:prefersReduced()?'instant':'smooth'});
   const jump=(chapter,index=selected)=>{const el=document.getElementById('showcase');const position=chapter===4?1:journeyPosition(index,chapterLocal[chapter]);window.scrollTo({top:el.offsetTop+(el.offsetHeight-innerHeight)*position,behavior:'instant'});};
@@ -93,9 +95,23 @@ function App(){
     return()=>{preference.removeEventListener('change',updateStory);ctx.revert();};
   },[loading]);
 
+  const returnToOpening=()=>{
+    document.querySelectorAll('.header-menu[open]').forEach(menu=>{menu.open=false;});
+    if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
+    window.scrollTo({top:0,behavior:'instant'});
+    controller.current?.resetForExhibition();
+    setSelected(0);setChapter(0);
+    gsap.killTweensOf(app.current);
+    gsap.set(app.current,{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk});
+    setExhibitionVisit(visit=>visit+1);
+    ScrollTrigger.update();
+    document.documentElement.classList.remove('custom-cursor');
+    window.dispatchEvent(new Event('luum:idle-return'));
+  };
   const inspect=(index)=>{applyProduct(index);jump(1,index);};
   return <div ref={app} className={`experience ${fallback?'is-fallback':''}`} data-exhibition-viewing="true" data-entry={loading?'true':'false'} data-chapter={chapter} data-viewing="false" data-intro-viewing="true" style={{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk}}>
     <Cursor/>
+    <ExhibitionIdleReturn onReturn={returnToOpening}/>
     <a className="skip-link" href="#showcase" tabIndex={loading?-1:0}>제품 탐색으로 건너뛰기</a>
     <div className="journey" inert={loading?true:undefined}>
       <header className="site-header">
@@ -106,7 +122,7 @@ function App(){
 
       <main>
         <section id="exhibition-opening" className="exhibition-opening" aria-label="LUUM 제품 영상 오프닝">
-          <OpeningFilm enabled={true} productFilm/>
+          <OpeningFilm key={exhibitionVisit} enabled={true} productFilm/>
           <button className="exhibition-scroll" onClick={()=>navigate('brand-story')}>
             Scroll to explore <svg viewBox="0 0 20 36" aria-hidden="true"><path d="M10 2v30M3 25l7 7 7-7"/></svg>
           </button>
@@ -144,7 +160,7 @@ function App(){
             <span className="sr-only" aria-live="polite">{product.name} {product.ko} {product.scentKo}</span>
           </div>
         </section>
-        <PatternAtelier onInspect={inspect}/>
+        <PatternAtelier key={exhibitionVisit} onInspect={inspect}/>
         <footer className="ending" id="ending"><div className="footer-pattern" aria-hidden="true"><Pattern type="diamond"/></div>
           <div className="footer-directory">
             <div className="footer-about"><h3 className="brand">LUUM</h3><p>Certainty, beyond sight.</p><a href="#exhibition-opening" onClick={e=>{e.preventDefault();navigate('exhibition-opening');}} className="back-to-top glass-control">Back to the beginning ↑</a></div>
