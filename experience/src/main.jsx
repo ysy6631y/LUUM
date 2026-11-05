@@ -52,6 +52,7 @@ function App(){
     const preference=matchMedia('(prefers-reduced-motion: reduce)');
     let updateStory;
     const ctx=gsap.context(self=>{
+        ScrollTrigger.create({trigger:'#exhibition-opening',start:'top top',end:'bottom top',onToggle:s=>{app.current.dataset.exhibitionViewing=s.isActive?'true':'false';}});
         const opening=gsap.timeline({scrollTrigger:{trigger:'#opening',start:'top top',end:'bottom bottom',scrub:true}});
         opening.fromTo('.opening-frost',{'--frost-edge':'120%'},{'--frost-edge':'-20%',ease:'none',duration:1},0)
           .to('.opening-scroll',{autoAlpha:0,duration:.25},.65);
@@ -94,7 +95,7 @@ function App(){
   },[loading]);
 
   const inspect=(index)=>{applyProduct(index);jump(1,index);};
-  return <div ref={app} className={`experience ${fallback?'is-fallback':''}`} data-entry={loading?'true':'false'} data-chapter={chapter} data-viewing="false" data-intro-viewing="true" style={{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk}}>
+  return <div ref={app} className={`experience ${fallback?'is-fallback':''}`} data-exhibition-viewing="true" data-entry={loading?'true':'false'} data-chapter={chapter} data-viewing="false" data-intro-viewing="true" style={{'--scene-bg':products[0].studioBg,'--ink':products[0].studioInk}}>
     <Cursor/>
     <a className="skip-link" href="#showcase" tabIndex={loading?-1:0}>제품 탐색으로 건너뛰기</a>
     <div className="journey" inert={loading?true:undefined}>
@@ -108,7 +109,7 @@ function App(){
         <section id="exhibition-opening" className="exhibition-opening" aria-label="LUUM 제품 영상 오프닝">
           <OpeningFilm enabled={true} productFilm/>
           <button className="exhibition-scroll" onClick={()=>navigate('brand-story')}>
-            Scroll to explore <span aria-hidden="true">↓</span>
+            Scroll to explore <svg viewBox="0 0 20 36" aria-hidden="true"><path d="M10 2v30M3 25l7 7 7-7"/></svg>
           </button>
         </section>
         <div className="intro-journey">
