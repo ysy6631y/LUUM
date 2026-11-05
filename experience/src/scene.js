@@ -74,7 +74,7 @@ export class ProductScene {
       this.targetJourney=productJourney((scrollY-section.offsetTop)/Math.max(1,section.offsetHeight-innerHeight));
       this.scroll=this.targetJourney.camera;
       if(this.active&&this.ready&&!this.down&&this.targetJourney.index!==this.selected){
-        this.progress=0;this.select(this.targetJourney.index);this.onSequence?.(this.targetJourney.index);
+        this.select(this.targetJourney.index,{scrollDriven:true});this.onSequence?.(this.targetJourney.index);
       }
     };
     this.move = e => {
@@ -153,18 +153,30 @@ export class ProductScene {
     if (!this.disposed) { this.ready = true; onReady(); this.readScroll(); }
   }
   rotate(delta) { this.dragTarget += delta; this.lastInteraction = this.elapsed; }
-  select(index) {
+  select(index, {scrollDriven=false} = {}) {
     if (index === this.selected) return;
     const previous = this.selected;
     this.selected = index;
     this.backdrop.select(index,this.reduced);
-    this.progress=0;this.gallery.value=0;
+    this.progress=scrollDriven?this.targetJourney.camera:0;this.gallery.value=0;
+    if(scrollDriven)this.stage={...this.targetJourney};
     const direction = index > previous ? 1 : -1;
     this.drag=this.dragTarget=0;this.dragTilt=this.dragTiltTarget=0;
     gsap.to(this.lighting, { warmth: [1,.8,.6,.3,.15][index], shift: (index-2)*.23, duration: this.reduced ? .01 : 2.4, ease: 'sine.inOut', overwrite: true });
     for (let i = 0; i < this.models.length; i++) {
       const model = this.models[i]; if (!model) continue;
       gsap.killTweensOf(model.userData);
+      // Native scrolling already supplies departure and arrival. A second
+      // timed slide here would replay the exit and move the incoming vessel
+      // sideways while its scroll entrance moves it vertically.
+      if(scrollDriven){
+        model.userData.outgoing=null;
+        model.userData.side=0;
+        model.userData.weight=i===index?1:0;
+        model.visible=i===index;
+        model.userData.shadow.visible=i===index;
+        continue;
+      }
       // Preserve the outgoing object's last rendered pose. Resetting the shared
       // camera passage must never snap a still-visible close-up back to the hero.
       model.userData.outgoing=i!==index&&model.visible?{position:model.position.clone(),rotation:model.rotation.clone(),scale:model.scale.clone(),weight:Math.max(.001,model.userData.weight),direction:-direction}:null;

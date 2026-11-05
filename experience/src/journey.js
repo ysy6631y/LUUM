@@ -8,10 +8,9 @@ export function productJourney(progress) {
   const index=Math.min(4,Math.floor(raw));
   const local=clamp(raw-index);
   let camera=0;
-  // Arrive at each detail, then hold it while the visitor reads and rotates.
-  if(local>.2) camera=clamp((local-.2)/.14);
-  if(local>.5) camera=1+clamp((local-.5)/.10);
-  if(local>.72) camera=2+clamp((local-.72)/.07);
+  if(local>.2) camera=clamp((local-.2)/.3);
+  if(local>.5) camera=1+clamp((local-.5)/.22);
+  if(local>.72) camera=2+clamp((local-.72)/.14);
   if(index===4&&local>.86) camera=3+clamp((local-.86)/.14);
   return {index,local,camera,arrival:smooth(local/.18),departure:index===4?0:smooth((local-.88)/.11)};
 }
